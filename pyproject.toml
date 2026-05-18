@@ -20,7 +20,6 @@ dependencies = [
     "pyarrow>=17.0",
     "pyyaml>=6.0",
     "tqdm>=4.66",
-
     # Vision / video — Roboflow sports recipe
     "torch>=2.5",
     "torchvision>=0.20",
@@ -28,39 +27,33 @@ dependencies = [
     "supervision>=0.25",             # Roboflow's annotation library
     "opencv-python>=4.10",
     "pillow>=10.4",
-
     # Tracking
     "boxmot>=12.0",                  # tracker zoo
-
     # Football-specific data + analytics
     "soccernet>=0.1.60",             # SoccerNet devkit (active pypi line is 0.1.x)
     "kloppy>=3.16",                  # tracking + event data IO
     "socceraction>=1.5",             # possession value, xT, etc.
     "mplsoccer>=1.4",                # football-specific plotting
-
     # Audio / ASR
     "openai-whisper>=20240930",      # baseline
     "faster-whisper>=1.0",           # faster inference path
     "pyannote.audio>=3.3",           # speaker diarization (CZ commentator vs co-commentator)
-
     # ML scaffolding
     "transformers>=4.46",
     "accelerate>=1.1",
     "datasets>=3.0",
     "peft>=0.13",                    # LoRA fine-tuning
     "evaluate>=0.4",
-
     # LLM agent (Phase 5)
     "anthropic>=0.40",
     "instructor>=1.6",               # structured-output helper
-
     # Demo (Phase 6)
     "gradio>=5.6",
-
     # IO + utils
     "requests>=2.32",
     "tenacity>=9.0",
     "gdown>=5.2",                    # Google Drive downloads (Roboflow weights + samples)
+    "yt-dlp>=2026.3.17",
 ]
 
 [project.optional-dependencies]

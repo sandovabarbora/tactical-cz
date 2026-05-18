@@ -96,6 +96,9 @@ def compute_homography(
     image_pts: np.ndarray | None = None,
     world_pts: np.ndarray | None = None,
     min_correspondences: int = 4,
+    min_keypoint_confidence: float = 0.5,
+    max_reprojection_px: float = 5.0,
+    min_inlier_ratio: float = 0.6,
 ) -> np.ndarray | None:
     """Compute the 3×3 homography from image to pitch-metres.
 
@@ -103,12 +106,18 @@ def compute_homography(
         * pass a supervision KeyPoints object from PitchDetector output,
         * or pass raw image_pts + world_pts arrays directly.
 
-    Returns None if too few correspondences are visible to fit reliably.
+    Confidence gates:
+        * ``min_correspondences``: minimum keypoints above confidence
+          threshold required before attempting a fit.
+        * ``min_keypoint_confidence``: per-point confidence floor.
+        * ``min_inlier_ratio``: fraction of RANSAC inliers among the
+          fitted points; below this we treat the fit as unreliable and
+          return None. Catches the case where 6+ keypoints triangulate
+          a wonky homography because most were noisy.
+
+    Returns None if any gate fails.
     """
     if keypoints is not None:
-        # supervision KeyPoints stores .xy shape (N, K, 2) per object
-        # and .confidence shape (N, K). Pitch has one "object" (the field),
-        # so we squeeze and filter by confidence.
         if len(keypoints) == 0:
             return None
         xy = keypoints.xy[0]                       # (K, 2)
@@ -117,11 +126,10 @@ def compute_homography(
             if keypoints.confidence is not None
             else np.ones(len(xy))
         )
-        mask = conf > 0.5
+        mask = conf > min_keypoint_confidence
         if mask.sum() < min_correspondences:
             return None
         image_pts = xy[mask].astype(np.float32)
-        # class_id of each keypoint = its landmark index
         class_ids = np.arange(len(xy))[mask]
         world_pts = PITCH_LANDMARKS_M[class_ids]
     elif image_pts is None or world_pts is None:
@@ -130,12 +138,18 @@ def compute_homography(
     if len(image_pts) < min_correspondences:
         return None
 
-    H, mask = cv2.findHomography(
+    H, ransac_mask = cv2.findHomography(
         srcPoints=image_pts.reshape(-1, 1, 2),
         dstPoints=world_pts.reshape(-1, 1, 2),
         method=cv2.RANSAC,
-        ransacReprojThreshold=5.0,
+        ransacReprojThreshold=max_reprojection_px,
     )
+    if H is None or ransac_mask is None:
+        return None
+    # Inlier ratio guard — too few inliers means the fit is unstable
+    inlier_ratio = float(ransac_mask.sum()) / len(ransac_mask)
+    if inlier_ratio < min_inlier_ratio:
+        return None
     return H
 
 
