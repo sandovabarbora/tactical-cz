@@ -192,12 +192,63 @@
 
 {% if mode == "real-labels" %}
 <section>
-  <h2>Training curve: where it broke</h2>
-  <p>Train loss kept dropping (head memorising 4-match training distribution). Validation loss flat throughout — the head learned EFL match identity, not transferable event patterns. The train-val gap is the overfitting signature.</p>
+  <h2>Where it works: temporal Shot localization</h2>
+  <p>This was the surprise. Looking at top-1 prediction per second on the Sparta clip, Shot doesn't fire uniformly — it spikes in two distinct clusters (around 8-12 s and 18-21 s), drops to background everywhere else. If you watch the clip, those moments should correspond to actual shot attempts. That's real cross-domain transfer (EFL training → Czech inference) on a 4-match training set.</p>
   <div class="chart-wrap">
     {{ shot_chart_svg | safe }}
-    <div class="chart-caption">P(Shot) along the 30-second Sparta clip — illustrates that a single class probability oscillates with no real grounding, which is what we'd expect when the head is overfitted and the input is out-of-distribution.</div>
+    <div class="chart-caption">P(Shot) along the 30-second Sparta clip. Two clear peaks where the model believes a shot is happening, low signal elsewhere. Goal class (not shown) similarly stays low except one brief moment — the right calibration for a 30 s highlight.</div>
   </div>
+</section>
+
+<section>
+  <h2>Top-1 prediction per second</h2>
+  <p>For each ~1 s window, the highest-confidence BAS class. Reads left to right as the action unfolds. Multiple consecutive seconds of "Shot" or "Header" suggest the model picked up on a multi-frame event sequence, not just a single noisy spike.</p>
+  <table>
+    <thead>
+      <tr><th>Second</th><th>Top-1 class</th><th class="num">P</th><th>Runner-up</th><th class="num">P</th></tr>
+    </thead>
+    <tbody>
+    {% for row in top1_timeline %}
+      <tr>
+        <td>{{ "%.1f"|format(row.second) }}s</td>
+        <td>{{ row.top1_cls }}</td>
+        <td class="num">{{ "%.3f"|format(row.top1_p) }}</td>
+        <td>{{ row.top2_cls }}</td>
+        <td class="num">{{ "%.3f"|format(row.top2_p) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Where it's broken: calibration bias on common classes</h2>
+  <p>Not all classes are equally well-behaved. The diagnostic is <strong>mean / max ratio</strong>: a class that fires high almost everywhere (mean ≈ max) is over-confident, while a class that spikes only at specific moments (mean << max) is doing the right thing for event spotting.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th class="num">Max P</th>
+        <th class="num">Mean P</th>
+        <th class="num">Mean / Max</th>
+        <th class="num">Peak at</th>
+        <th>Reading</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for row in per_class_table %}
+      <tr>
+        <td>{{ row.cls }}</td>
+        <td class="num">{{ "%.3f"|format(row.max_p) }}</td>
+        <td class="num">{{ "%.3f"|format(row.mean_p) }}</td>
+        <td class="num">{{ "%.2f"|format(row.calibration_ratio) }}</td>
+        <td class="num">{{ "%.1f"|format(row.at_second) }}s</td>
+        <td>{% if row.calibration_ratio > 0.7 %}<span style="color:#a8523a">over-confident</span>{% elif row.calibration_ratio < 0.3 %}localized{% else %}moderate{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p>Take-away: <strong>Shot, Goal, Header, Cross</strong> are well-calibrated (peak well above mean = real event localization). <strong>Out, Ball Player Block</strong> are over-confident (fire high almost always = false-positive bias from EFL training distribution). Pass + Drive are under-confident, likely because inverse-frequency positive-weighting in BCE loss overcompensated for their high training counts.</p>
 </section>
 {% else %}
 <section>

@@ -68,8 +68,8 @@ class RenderConfig:
     # to describe a SoccerNet-trained run instead of the original
     # fake-labels demo. Default real-labels going forward.
     mode: str = "real-labels"               # "fake-labels" | "real-labels"
-    train_loss_final: str = "0.56"
-    val_loss_final: str = "0.88"
+    train_loss_final: str = "0.18"
+    val_loss_final: str = "0.21"
 
 
 def _render_shot_timeline_svg(
@@ -119,17 +119,46 @@ def _render_shot_timeline_svg(
 
 
 def _per_class_table(df: pd.DataFrame) -> list[dict]:
-    """Top-confidence frame per BAS class, sorted by max prob descending."""
+    """Calibration-aware per-class summary.
+
+    For each BAS class: max P (peak signal), mean P (calibration bias
+    proxy — high mean ≈ fires high almost always), where peak landed.
+
+    The calibration column is the diagnostic that matters: ``mean / max``
+    near 1.0 means the class is over-confident across all windows;
+    near 0 means it spikes only at specific moments (the right behaviour
+    for event spotting).
+    """
     rows = []
     for cls, group in df.groupby("event_type"):
         top = group.loc[group.confidence.idxmax()]
         rows.append({
             "cls": cls,
             "max_p": float(top.confidence),
+            "mean_p": float(group.confidence.mean()),
             "at_frame": int(top.frame_idx),
             "at_second": float(top.second),
+            "calibration_ratio": float(group.confidence.mean() / max(top.confidence, 1e-6)),
         })
     return sorted(rows, key=lambda r: -r["max_p"])
+
+
+def _top1_timeline(df: pd.DataFrame) -> list[dict]:
+    """Top-1 class + runner-up per window (sorted by frame). The real
+    signal: does the model localize events to specific moments?"""
+    piv = df.pivot_table(index="frame_idx", columns="event_type", values="confidence")
+    rows = []
+    for f in piv.index:
+        sorted_classes = piv.loc[f].sort_values(ascending=False)
+        rows.append({
+            "frame": int(f),
+            "second": float(f / 25.0),
+            "top1_cls": str(sorted_classes.index[0]),
+            "top1_p": float(sorted_classes.iloc[0]),
+            "top2_cls": str(sorted_classes.index[1]),
+            "top2_p": float(sorted_classes.iloc[1]),
+        })
+    return rows
 
 
 def render_demo(cfg: RenderConfig) -> Path:
@@ -193,6 +222,7 @@ def render_demo(cfg: RenderConfig) -> Path:
         val_loss_final=cfg.val_loss_final,
         shot_chart_svg=_render_shot_timeline_svg(df, fake_low, fake_high),
         per_class_table=_per_class_table(df),
+        top1_timeline=_top1_timeline(df),
     )
     cfg.out_html.write_text(html, encoding="utf-8")
     logger.info("Wrote demo page: %s (%d bytes)", cfg.out_html, len(html))

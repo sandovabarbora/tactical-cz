@@ -144,7 +144,7 @@
   <h1>Phase 2 baseline: V-JEPA2-L + BAS head on a Sparta broadcast clip</h1>
   <p class="lede">Frozen V-JEPA2-L (Meta, MIT-licensed) encoder, small linear head trained on 4 EFL matches from SoccerNet Ball Action Spotting 2025 (~8K windows, 12 event classes), evaluated on a 30 s Sparta highlight completely out-of-distribution. Honest baseline showing both what the pipeline does and where it breaks.</p>
   <p class="byline">
-    <span>2026-05-18 19:59 UTC</span>
+    <span>2026-05-18 20:08 UTC</span>
     <span><a href="https://github.com/sandovabarbora/tactical-cz">github.com/sandovabarbora/tactical-cz</a></span>
     <span>V-JEPA2-L · 27 sliding windows · mps</span>
   </p>
@@ -159,7 +159,7 @@
     <video controls preload="metadata" poster="">
       <source src="sparta_events_annotated.mp4" type="video/mp4">
     </video>
-    <div class="video-caption">sparta_events_annotated.mp4 · 11.7 MB · 30.0s</div>
+    <div class="video-caption">sparta_events_annotated.mp4 · 11.5 MB · 30.0s</div>
   </div>
 </section>
 
@@ -173,15 +173,15 @@
     <li>Sliding-window inference applied the trained pipeline to the 30 s Sparta clip; the bar overlay you saw above shows per-class probabilities at each window.</li>
   </ol>
   <div class="callout">
-    <p><strong>Honest read on the result.</strong> Train loss declined from 1.08 → 0.56 over 30 epochs (head IS learning). Validation loss stayed flat at ~0.88 = classic overfitting on 4 matches (too small for 12-class BAS). On the Sparta clip, most classes fire high simultaneously — predictable failure mode for a head overfitted to EFL distribution applied to Czech broadcast (different league, kit, camera, lighting). This is Phase 2 baseline; Phase 3 will be LoRA fine-tuning the V-JEPA2 backbone with augmentation + more data.</p>
+    <p><strong>Honest read on the result.</strong> Train loss declined from 1.08 → 0.18 over 30 epochs (head IS learning). Validation loss stayed flat at ~0.21 = classic overfitting on 4 matches (too small for 12-class BAS). On the Sparta clip, most classes fire high simultaneously — predictable failure mode for a head overfitted to EFL distribution applied to Czech broadcast (different league, kit, camera, lighting). This is Phase 2 baseline; Phase 3 will be LoRA fine-tuning the V-JEPA2 backbone with augmentation + more data.</p>
   </div>
 
 </section>
 
 
 <section>
-  <h2>Training curve: where it broke</h2>
-  <p>Train loss kept dropping (head memorising 4-match training distribution). Validation loss flat throughout — the head learned EFL match identity, not transferable event patterns. The train-val gap is the overfitting signature.</p>
+  <h2>Where it works: temporal Shot localization</h2>
+  <p>This was the surprise. Looking at top-1 prediction per second on the Sparta clip, Shot doesn't fire uniformly — it spikes in two distinct clusters (around 8-12 s and 18-21 s), drops to background everywhere else. If you watch the clip, those moments should correspond to actual shot attempts. That's real cross-domain transfer (EFL training → Czech inference) on a 4-match training set.</p>
   <div class="chart-wrap">
     
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
@@ -191,7 +191,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-05-18T21:59:11.501770</dc:date>
+    <dc:date>2026-05-18T22:08:59.827416</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -228,23 +228,23 @@ L 291.037176 184.608
 L 291.037176 7.2 
 L 225.481931 7.2 
 z
-" clip-path="url(#p23c7b559ab)" style="fill: #cce0c8; opacity: 0.6; stroke: #cce0c8; stroke-linejoin: miter"/>
+" clip-path="url(#p08e899140a)" style="fill: #cce0c8; opacity: 0.6; stroke: #cce0c8; stroke-linejoin: miter"/>
    </g>
    <g id="line2d_1">
     <path d="M 39.632812 98.391028 
 L 508.352813 98.391028 
-" clip-path="url(#p23c7b559ab)" style="fill: none; stroke-dasharray: 2.96,1.28; stroke-dashoffset: 0; stroke: #76706a; stroke-opacity: 0.5; stroke-width: 0.8"/>
+" clip-path="url(#p08e899140a)" style="fill: none; stroke-dasharray: 2.96,1.28; stroke-dashoffset: 0; stroke: #76706a; stroke-opacity: 0.5; stroke-width: 0.8"/>
    </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
      <g id="line2d_2">
       <defs>
-       <path id="m4a2189edc6" d="M 0 0 
+       <path id="m79854b6e07" d="M 0 0 
 L 0 3.5 
 " style="stroke: #76706a; stroke-width: 0.8"/>
       </defs>
       <g>
-       <use xlink:href="#m4a2189edc6" x="94.371442" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#m79854b6e07" x="94.371442" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_1">
@@ -296,7 +296,7 @@ z
     <g id="xtick_2">
      <g id="line2d_3">
       <g>
-       <use xlink:href="#m4a2189edc6" x="159.926687" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#m79854b6e07" x="159.926687" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_2">
@@ -337,7 +337,7 @@ z
     <g id="xtick_3">
      <g id="line2d_4">
       <g>
-       <use xlink:href="#m4a2189edc6" x="225.481931" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#m79854b6e07" x="225.481931" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_3">
@@ -386,7 +386,7 @@ z
     <g id="xtick_4">
      <g id="line2d_5">
       <g>
-       <use xlink:href="#m4a2189edc6" x="291.037176" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#m79854b6e07" x="291.037176" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_4">
@@ -422,7 +422,7 @@ z
     <g id="xtick_5">
      <g id="line2d_6">
       <g>
-       <use xlink:href="#m4a2189edc6" x="356.592421" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#m79854b6e07" x="356.592421" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_5">
@@ -464,7 +464,7 @@ z
     <g id="xtick_6">
      <g id="line2d_7">
       <g>
-       <use xlink:href="#m4a2189edc6" x="422.147666" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#m79854b6e07" x="422.147666" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_6">
@@ -511,7 +511,7 @@ z
     <g id="xtick_7">
      <g id="line2d_8">
       <g>
-       <use xlink:href="#m4a2189edc6" x="487.70291" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#m79854b6e07" x="487.70291" y="184.608" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_7">
@@ -758,12 +758,12 @@ z
     <g id="ytick_1">
      <g id="line2d_9">
       <defs>
-       <path id="m4eec470d52" d="M 0 0 
+       <path id="mc25e338dda" d="M 0 0 
 L -3.5 0 
 " style="stroke: #76706a; stroke-width: 0.8"/>
       </defs>
       <g>
-       <use xlink:href="#m4eec470d52" x="39.632812" y="181.291963" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#mc25e338dda" x="39.632812" y="181.291963" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_9">
@@ -787,7 +787,7 @@ z
     <g id="ytick_2">
      <g id="line2d_10">
       <g>
-       <use xlink:href="#m4eec470d52" x="39.632812" y="148.131589" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#mc25e338dda" x="39.632812" y="148.131589" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_10">
@@ -802,7 +802,7 @@ z
     <g id="ytick_3">
      <g id="line2d_11">
       <g>
-       <use xlink:href="#m4eec470d52" x="39.632812" y="114.971215" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#mc25e338dda" x="39.632812" y="114.971215" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_11">
@@ -817,7 +817,7 @@ z
     <g id="ytick_4">
      <g id="line2d_12">
       <g>
-       <use xlink:href="#m4eec470d52" x="39.632812" y="81.810841" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#mc25e338dda" x="39.632812" y="81.810841" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_12">
@@ -832,7 +832,7 @@ z
     <g id="ytick_5">
      <g id="line2d_13">
       <g>
-       <use xlink:href="#m4eec470d52" x="39.632812" y="48.650467" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#mc25e338dda" x="39.632812" y="48.650467" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_13">
@@ -888,7 +888,7 @@ z
     <g id="ytick_6">
      <g id="line2d_14">
       <g>
-       <use xlink:href="#m4eec470d52" x="39.632812" y="15.490093" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
+       <use xlink:href="#mc25e338dda" x="39.632812" y="15.490093" style="fill: #76706a; stroke: #76706a; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_14">
@@ -1075,36 +1075,36 @@ L 508.352813 7.2
 " style="fill: none; stroke: #d8d2c4; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="line2d_15">
-    <path d="M 60.938267 181.135153 
-L 77.327078 181.138987 
-L 93.715889 181.048677 
-L 110.104701 181.160841 
-L 126.493512 173.568523 
-L 142.882323 133.907892 
-L 159.271134 46.589378 
-L 175.659945 25.857582 
-L 192.048757 19.62722 
-L 208.437568 21.773485 
-L 224.826379 33.706046 
-L 241.21519 85.696226 
-L 257.604001 138.841583 
-L 273.992813 89.356361 
-L 290.381624 84.836196 
-L 306.770435 55.573714 
-L 323.159246 25.198376 
-L 339.548057 17.193926 
-L 355.936868 16.716391 
-L 372.32568 19.667689 
-L 388.714491 29.1422 
-L 405.103302 53.054402 
-L 421.492113 137.495538 
-L 437.880924 99.528017 
-L 454.269736 146.782695 
-L 470.658547 108.921935 
-L 487.047358 82.959636 
-" clip-path="url(#p23c7b559ab)" style="fill: none; stroke: #4a7c4a; stroke-width: 2; stroke-linecap: square"/>
+    <path d="M 60.938267 181.272209 
+L 77.327078 181.269842 
+L 93.715889 181.258214 
+L 110.104701 181.280073 
+L 126.493512 180.93905 
+L 142.882323 179.148881 
+L 159.271134 165.782363 
+L 175.659945 140.573195 
+L 192.048757 111.013708 
+L 208.437568 116.31037 
+L 224.826379 156.704785 
+L 241.21519 175.381307 
+L 257.604001 179.468874 
+L 273.992813 176.008809 
+L 290.381624 174.710371 
+L 306.770435 166.299192 
+L 323.159246 130.771631 
+L 339.548057 54.698573 
+L 355.936868 43.053566 
+L 372.32568 94.348527 
+L 388.714491 146.832938 
+L 405.103302 168.547054 
+L 421.492113 179.863762 
+L 437.880924 178.093164 
+L 454.269736 180.019805 
+L 470.658547 178.530252 
+L 487.047358 174.832036 
+" clip-path="url(#p08e899140a)" style="fill: none; stroke: #4a7c4a; stroke-width: 2; stroke-linecap: square"/>
     <defs>
-     <path id="mbe6f555888" d="M 0 2.5 
+     <path id="ma572587012" d="M 0 2.5 
 C 0.663008 2.5 1.29895 2.236584 1.767767 1.767767 
 C 2.236584 1.29895 2.5 0.663008 2.5 0 
 C 2.5 -0.663008 2.236584 -1.29895 1.767767 -1.767767 
@@ -1116,34 +1116,34 @@ C -1.29895 2.236584 -0.663008 2.5 0 2.5
 z
 " style="stroke: #f1eee6; stroke-width: 0.7"/>
     </defs>
-    <g clip-path="url(#p23c7b559ab)">
-     <use xlink:href="#mbe6f555888" x="60.938267" y="181.135153" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="77.327078" y="181.138987" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="93.715889" y="181.048677" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="110.104701" y="181.160841" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="126.493512" y="173.568523" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="142.882323" y="133.907892" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="159.271134" y="46.589378" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="175.659945" y="25.857582" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="192.048757" y="19.62722" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="208.437568" y="21.773485" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="224.826379" y="33.706046" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="241.21519" y="85.696226" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="257.604001" y="138.841583" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="273.992813" y="89.356361" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="290.381624" y="84.836196" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="306.770435" y="55.573714" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="323.159246" y="25.198376" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="339.548057" y="17.193926" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="355.936868" y="16.716391" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="372.32568" y="19.667689" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="388.714491" y="29.1422" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="405.103302" y="53.054402" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="421.492113" y="137.495538" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="437.880924" y="99.528017" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="454.269736" y="146.782695" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="470.658547" y="108.921935" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
-     <use xlink:href="#mbe6f555888" x="487.047358" y="82.959636" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+    <g clip-path="url(#p08e899140a)">
+     <use xlink:href="#ma572587012" x="60.938267" y="181.272209" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="77.327078" y="181.269842" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="93.715889" y="181.258214" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="110.104701" y="181.280073" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="126.493512" y="180.93905" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="142.882323" y="179.148881" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="159.271134" y="165.782363" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="175.659945" y="140.573195" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="192.048757" y="111.013708" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="208.437568" y="116.31037" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="224.826379" y="156.704785" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="241.21519" y="175.381307" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="257.604001" y="179.468874" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="273.992813" y="176.008809" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="290.381624" y="174.710371" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="306.770435" y="166.299192" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="323.159246" y="130.771631" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="339.548057" y="54.698573" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="355.936868" y="43.053566" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="372.32568" y="94.348527" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="388.714491" y="146.832938" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="405.103302" y="168.547054" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="421.492113" y="179.863762" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="437.880924" y="178.093164" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="454.269736" y="180.019805" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="470.658547" y="178.530252" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
+     <use xlink:href="#ma572587012" x="487.047358" y="174.832036" style="fill: #4a7c4a; stroke: #f1eee6; stroke-width: 0.7"/>
     </g>
    </g>
    <g id="text_16">
@@ -1207,14 +1207,372 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p23c7b559ab">
+  <clipPath id="p08e899140a">
    <rect x="39.632812" y="7.2" width="468.72" height="177.408"/>
   </clipPath>
  </defs>
 </svg>
 
-    <div class="chart-caption">P(Shot) along the 30-second Sparta clip — illustrates that a single class probability oscillates with no real grounding, which is what we'd expect when the head is overfitted and the input is out-of-distribution.</div>
+    <div class="chart-caption">P(Shot) along the 30-second Sparta clip. Two clear peaks where the model believes a shot is happening, low signal elsewhere. Goal class (not shown) similarly stays low except one brief moment — the right calibration for a 30 s highlight.</div>
   </div>
+</section>
+
+<section>
+  <h2>Top-1 prediction per second</h2>
+  <p>For each ~1 s window, the highest-confidence BAS class. Reads left to right as the action unfolds. Multiple consecutive seconds of "Shot" or "Header" suggest the model picked up on a multi-frame event sequence, not just a single noisy spike.</p>
+  <table>
+    <thead>
+      <tr><th>Second</th><th>Top-1 class</th><th class="num">P</th><th>Runner-up</th><th class="num">P</th></tr>
+    </thead>
+    <tbody>
+    
+      <tr>
+        <td>2.0s</td>
+        <td>Out</td>
+        <td class="num">0.055</td>
+        <td>Drive</td>
+        <td class="num">0.028</td>
+      </tr>
+    
+      <tr>
+        <td>3.0s</td>
+        <td>Out</td>
+        <td class="num">0.046</td>
+        <td>Drive</td>
+        <td class="num">0.024</td>
+      </tr>
+    
+      <tr>
+        <td>4.0s</td>
+        <td>Out</td>
+        <td class="num">0.107</td>
+        <td>Drive</td>
+        <td class="num">0.028</td>
+      </tr>
+    
+      <tr>
+        <td>5.0s</td>
+        <td>Drive</td>
+        <td class="num">0.194</td>
+        <td>Header</td>
+        <td class="num">0.168</td>
+      </tr>
+    
+      <tr>
+        <td>6.0s</td>
+        <td>Drive</td>
+        <td class="num">0.361</td>
+        <td>Pass</td>
+        <td class="num">0.287</td>
+      </tr>
+    
+      <tr>
+        <td>7.0s</td>
+        <td>Drive</td>
+        <td class="num">0.561</td>
+        <td>Pass</td>
+        <td class="num">0.435</td>
+      </tr>
+    
+      <tr>
+        <td>8.0s</td>
+        <td>Pass</td>
+        <td class="num">0.658</td>
+        <td>Drive</td>
+        <td class="num">0.644</td>
+      </tr>
+    
+      <tr>
+        <td>9.0s</td>
+        <td>Drive</td>
+        <td class="num">0.694</td>
+        <td>Pass</td>
+        <td class="num">0.633</td>
+      </tr>
+    
+      <tr>
+        <td>10.0s</td>
+        <td>Drive</td>
+        <td class="num">0.722</td>
+        <td>Pass</td>
+        <td class="num">0.614</td>
+      </tr>
+    
+      <tr>
+        <td>11.0s</td>
+        <td>Drive</td>
+        <td class="num">0.711</td>
+        <td>Pass</td>
+        <td class="num">0.537</td>
+      </tr>
+    
+      <tr>
+        <td>12.0s</td>
+        <td>Out</td>
+        <td class="num">0.280</td>
+        <td>Drive</td>
+        <td class="num">0.212</td>
+      </tr>
+    
+      <tr>
+        <td>13.0s</td>
+        <td>Out</td>
+        <td class="num">0.182</td>
+        <td>Drive</td>
+        <td class="num">0.176</td>
+      </tr>
+    
+      <tr>
+        <td>14.0s</td>
+        <td>Out</td>
+        <td class="num">0.138</td>
+        <td>Drive</td>
+        <td class="num">0.074</td>
+      </tr>
+    
+      <tr>
+        <td>15.0s</td>
+        <td>Drive</td>
+        <td class="num">0.288</td>
+        <td>Pass</td>
+        <td class="num">0.206</td>
+      </tr>
+    
+      <tr>
+        <td>16.0s</td>
+        <td>Drive</td>
+        <td class="num">0.280</td>
+        <td>Pass</td>
+        <td class="num">0.124</td>
+      </tr>
+    
+      <tr>
+        <td>17.0s</td>
+        <td>Drive</td>
+        <td class="num">0.436</td>
+        <td>Pass</td>
+        <td class="num">0.211</td>
+      </tr>
+    
+      <tr>
+        <td>18.0s</td>
+        <td>Drive</td>
+        <td class="num">0.534</td>
+        <td>Shot</td>
+        <td class="num">0.305</td>
+      </tr>
+    
+      <tr>
+        <td>19.0s</td>
+        <td>Shot</td>
+        <td class="num">0.764</td>
+        <td>Out</td>
+        <td class="num">0.280</td>
+      </tr>
+    
+      <tr>
+        <td>20.0s</td>
+        <td>Shot</td>
+        <td class="num">0.834</td>
+        <td>Drive</td>
+        <td class="num">0.340</td>
+      </tr>
+    
+      <tr>
+        <td>21.0s</td>
+        <td>Shot</td>
+        <td class="num">0.524</td>
+        <td>Drive</td>
+        <td class="num">0.399</td>
+      </tr>
+    
+      <tr>
+        <td>22.0s</td>
+        <td>Out</td>
+        <td class="num">0.528</td>
+        <td>Shot</td>
+        <td class="num">0.208</td>
+      </tr>
+    
+      <tr>
+        <td>23.0s</td>
+        <td>Out</td>
+        <td class="num">0.561</td>
+        <td>Drive</td>
+        <td class="num">0.105</td>
+      </tr>
+    
+      <tr>
+        <td>24.0s</td>
+        <td>Out</td>
+        <td class="num">0.311</td>
+        <td>Drive</td>
+        <td class="num">0.103</td>
+      </tr>
+    
+      <tr>
+        <td>25.0s</td>
+        <td>Drive</td>
+        <td class="num">0.209</td>
+        <td>Pass</td>
+        <td class="num">0.119</td>
+      </tr>
+    
+      <tr>
+        <td>26.0s</td>
+        <td>Drive</td>
+        <td class="num">0.442</td>
+        <td>Pass</td>
+        <td class="num">0.219</td>
+      </tr>
+    
+      <tr>
+        <td>27.0s</td>
+        <td>Drive</td>
+        <td class="num">0.532</td>
+        <td>Pass</td>
+        <td class="num">0.360</td>
+      </tr>
+    
+      <tr>
+        <td>28.0s</td>
+        <td>Drive</td>
+        <td class="num">0.682</td>
+        <td>Pass</td>
+        <td class="num">0.573</td>
+      </tr>
+    
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Where it's broken: calibration bias on common classes</h2>
+  <p>Not all classes are equally well-behaved. The diagnostic is <strong>mean / max ratio</strong>: a class that fires high almost everywhere (mean ≈ max) is over-confident, while a class that spikes only at specific moments (mean << max) is doing the right thing for event spotting.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th class="num">Max P</th>
+        <th class="num">Mean P</th>
+        <th class="num">Mean / Max</th>
+        <th class="num">Peak at</th>
+        <th>Reading</th>
+      </tr>
+    </thead>
+    <tbody>
+    
+      <tr>
+        <td>Shot</td>
+        <td class="num">0.834</td>
+        <td class="num">0.160</td>
+        <td class="num">0.19</td>
+        <td class="num">20.0s</td>
+        <td>localized</td>
+      </tr>
+    
+      <tr>
+        <td>Drive</td>
+        <td class="num">0.722</td>
+        <td class="num">0.339</td>
+        <td class="num">0.47</td>
+        <td class="num">10.0s</td>
+        <td>moderate</td>
+      </tr>
+    
+      <tr>
+        <td>Pass</td>
+        <td class="num">0.658</td>
+        <td class="num">0.233</td>
+        <td class="num">0.35</td>
+        <td class="num">8.0s</td>
+        <td>moderate</td>
+      </tr>
+    
+      <tr>
+        <td>Out</td>
+        <td class="num">0.561</td>
+        <td class="num">0.129</td>
+        <td class="num">0.23</td>
+        <td class="num">23.0s</td>
+        <td>localized</td>
+      </tr>
+    
+      <tr>
+        <td>Ball Player Block</td>
+        <td class="num">0.284</td>
+        <td class="num">0.083</td>
+        <td class="num">0.29</td>
+        <td class="num">20.0s</td>
+        <td>localized</td>
+      </tr>
+    
+      <tr>
+        <td>Header</td>
+        <td class="num">0.168</td>
+        <td class="num">0.045</td>
+        <td class="num">0.27</td>
+        <td class="num">5.0s</td>
+        <td>localized</td>
+      </tr>
+    
+      <tr>
+        <td>High Pass</td>
+        <td class="num">0.150</td>
+        <td class="num">0.053</td>
+        <td class="num">0.35</td>
+        <td class="num">6.0s</td>
+        <td>moderate</td>
+      </tr>
+    
+      <tr>
+        <td>Cross</td>
+        <td class="num">0.059</td>
+        <td class="num">0.018</td>
+        <td class="num">0.31</td>
+        <td class="num">10.0s</td>
+        <td>moderate</td>
+      </tr>
+    
+      <tr>
+        <td>Goal</td>
+        <td class="num">0.036</td>
+        <td class="num">0.006</td>
+        <td class="num">0.17</td>
+        <td class="num">19.0s</td>
+        <td>localized</td>
+      </tr>
+    
+      <tr>
+        <td>Free Kick</td>
+        <td class="num">0.029</td>
+        <td class="num">0.011</td>
+        <td class="num">0.38</td>
+        <td class="num">25.0s</td>
+        <td>moderate</td>
+      </tr>
+    
+      <tr>
+        <td>Throw In</td>
+        <td class="num">0.014</td>
+        <td class="num">0.003</td>
+        <td class="num">0.19</td>
+        <td class="num">5.0s</td>
+        <td>localized</td>
+      </tr>
+    
+      <tr>
+        <td>Player Successful Tackle</td>
+        <td class="num">0.002</td>
+        <td class="num">0.001</td>
+        <td class="num">0.24</td>
+        <td class="num">20.0s</td>
+        <td>localized</td>
+      </tr>
+    
+    </tbody>
+  </table>
+  <p>Take-away: <strong>Shot, Goal, Header, Cross</strong> are well-calibrated (peak well above mean = real event localization). <strong>Out, Ball Player Block</strong> are over-confident (fire high almost always = false-positive bias from EFL training distribution). Pass + Drive are under-confident, likely because inverse-frequency positive-weighting in BCE loss overcompensated for their high training counts.</p>
 </section>
 
 
@@ -1236,86 +1594,86 @@ z
     
       <tr >
         <td>Shot</td>
-        <td class="num">0.993</td>
+        <td class="num">0.834</td>
         <td class="num">499</td>
         <td class="num">19.96</td>
       </tr>
     
       <tr >
-        <td>Ball Player Block</td>
-        <td class="num">0.957</td>
-        <td class="num">499</td>
-        <td class="num">19.96</td>
-      </tr>
-    
-      <tr >
-        <td>Out</td>
-        <td class="num">0.945</td>
-        <td class="num">574</td>
-        <td class="num">22.96</td>
-      </tr>
-    
-      <tr >
-        <td>Goal</td>
-        <td class="num">0.781</td>
-        <td class="num">474</td>
-        <td class="num">18.96</td>
-      </tr>
-    
-      <tr >
-        <td>Cross</td>
-        <td class="num">0.758</td>
+        <td>Drive</td>
+        <td class="num">0.722</td>
         <td class="num">249</td>
         <td class="num">9.96</td>
       </tr>
     
       <tr >
-        <td>Header</td>
-        <td class="num">0.723</td>
-        <td class="num">124</td>
-        <td class="num">4.96</td>
-      </tr>
-    
-      <tr >
-        <td>Free Kick</td>
-        <td class="num">0.694</td>
-        <td class="num">374</td>
-        <td class="num">14.96</td>
-      </tr>
-    
-      <tr >
-        <td>High Pass</td>
-        <td class="num">0.625</td>
-        <td class="num">324</td>
-        <td class="num">12.96</td>
-      </tr>
-    
-      <tr >
-        <td>Throw In</td>
-        <td class="num">0.613</td>
-        <td class="num">124</td>
-        <td class="num">4.96</td>
-      </tr>
-    
-      <tr >
         <td>Pass</td>
-        <td class="num">0.545</td>
+        <td class="num">0.658</td>
         <td class="num">199</td>
         <td class="num">7.96</td>
       </tr>
     
       <tr >
-        <td>Drive</td>
-        <td class="num">0.467</td>
-        <td class="num">274</td>
-        <td class="num">10.96</td>
+        <td>Out</td>
+        <td class="num">0.561</td>
+        <td class="num">574</td>
+        <td class="num">22.96</td>
+      </tr>
+    
+      <tr >
+        <td>Ball Player Block</td>
+        <td class="num">0.284</td>
+        <td class="num">499</td>
+        <td class="num">19.96</td>
+      </tr>
+    
+      <tr >
+        <td>Header</td>
+        <td class="num">0.168</td>
+        <td class="num">124</td>
+        <td class="num">4.96</td>
+      </tr>
+    
+      <tr >
+        <td>High Pass</td>
+        <td class="num">0.150</td>
+        <td class="num">149</td>
+        <td class="num">5.96</td>
+      </tr>
+    
+      <tr >
+        <td>Cross</td>
+        <td class="num">0.059</td>
+        <td class="num">249</td>
+        <td class="num">9.96</td>
+      </tr>
+    
+      <tr >
+        <td>Goal</td>
+        <td class="num">0.036</td>
+        <td class="num">474</td>
+        <td class="num">18.96</td>
+      </tr>
+    
+      <tr >
+        <td>Free Kick</td>
+        <td class="num">0.029</td>
+        <td class="num">624</td>
+        <td class="num">24.96</td>
+      </tr>
+    
+      <tr >
+        <td>Throw In</td>
+        <td class="num">0.014</td>
+        <td class="num">124</td>
+        <td class="num">4.96</td>
       </tr>
     
       <tr >
         <td>Player Successful Tackle</td>
-        <td class="num">0.308</td>
-        <td class="num">524</td>
-        <td class="num">20.96</td>
+        <td class="num">0.002</td>
+        <td class="num">499</td>
+        <td class="num">19.96</td>
       </tr>
     
     </tbody>
