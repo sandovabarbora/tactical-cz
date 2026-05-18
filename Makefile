@@ -46,8 +46,13 @@ install-train:
 # ─── Phase entry points (stubs — wired in subsequent phases) ──────────────
 
 vision:
-	@echo "Phase 1 not yet implemented — see PRD.md § Implementation phases"
-	@echo "Will run: $(PY) -m tactical_cz.vision --input data/raw/match.mp4"
+	@if [ -z "$(INPUT)" ]; then \
+	  echo "Usage: make vision INPUT=path/to/match.mp4 [MAX_FRAMES=300]"; \
+	  exit 1; \
+	fi
+	$(PY) -m tactical_cz.vision --input $(INPUT) \
+	  $(if $(MAX_FRAMES),--max-frames $(MAX_FRAMES),) \
+	  $(if $(STRIDE),--stride $(STRIDE),)
 
 events:
 	@echo "Phase 2 not yet implemented"

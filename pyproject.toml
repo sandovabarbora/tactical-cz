@@ -33,7 +33,7 @@ dependencies = [
     "boxmot>=12.0",                  # tracker zoo
 
     # Football-specific data + analytics
-    "soccernet>=1.0",                # SoccerNet devkit
+    "soccernet>=0.1.60",             # SoccerNet devkit (active pypi line is 0.1.x)
     "kloppy>=3.16",                  # tracking + event data IO
     "socceraction>=1.5",             # possession value, xT, etc.
     "mplsoccer>=1.4",                # football-specific plotting
@@ -60,6 +60,7 @@ dependencies = [
     # IO + utils
     "requests>=2.32",
     "tenacity>=9.0",
+    "gdown>=5.2",                    # Google Drive downloads (Roboflow weights + samples)
 ]
 
 [project.optional-dependencies]
