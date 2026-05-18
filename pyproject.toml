@@ -1,0 +1,113 @@
+[project]
+name = "tactical-cz"
+version = "0.1.0"
+description = "Multimodal AI pipeline for Czech football broadcasts — vision, ASR, tactical QA."
+readme = "README.md"
+authors = [
+    { name = "Barbora Sandova", email = "barbora@datasimply.eu" }
+]
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+keywords = [
+    "football", "soccer", "computer-vision", "asr", "multimodal", "czech",
+    "fortuna-liga", "soccernet", "tactical-analysis",
+]
+
+dependencies = [
+    # Core
+    "numpy>=1.26,<2.3",
+    "pandas>=2.2",
+    "pyarrow>=17.0",
+    "pyyaml>=6.0",
+    "tqdm>=4.66",
+
+    # Vision / video — Roboflow sports recipe
+    "torch>=2.5",
+    "torchvision>=0.20",
+    "ultralytics>=8.3",              # YOLOv8 / RT-DETR detector
+    "supervision>=0.25",             # Roboflow's annotation library
+    "opencv-python>=4.10",
+    "pillow>=10.4",
+
+    # Tracking
+    "boxmot>=12.0",                  # tracker zoo
+
+    # Football-specific data + analytics
+    "soccernet>=1.0",                # SoccerNet devkit
+    "kloppy>=3.16",                  # tracking + event data IO
+    "socceraction>=1.5",             # possession value, xT, etc.
+    "mplsoccer>=1.4",                # football-specific plotting
+
+    # Audio / ASR
+    "openai-whisper>=20240930",      # baseline
+    "faster-whisper>=1.0",           # faster inference path
+    "pyannote.audio>=3.3",           # speaker diarization (CZ commentator vs co-commentator)
+
+    # ML scaffolding
+    "transformers>=4.46",
+    "accelerate>=1.1",
+    "datasets>=3.0",
+    "peft>=0.13",                    # LoRA fine-tuning
+    "evaluate>=0.4",
+
+    # LLM agent (Phase 5)
+    "anthropic>=0.40",
+    "instructor>=1.6",               # structured-output helper
+
+    # Demo (Phase 6)
+    "gradio>=5.6",
+
+    # IO + utils
+    "requests>=2.32",
+    "tenacity>=9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=5.0",
+    "ruff>=0.7",
+    "ipykernel>=6.29",
+    "jupyter>=1.1",
+    "ipywidgets>=8.1",
+]
+train = [
+    # Heavier training dependencies — only on GPU machine
+    "pytorch-lightning>=2.4",
+    "tensorboard>=2.18",
+    "wandb>=0.18",
+]
+
+[project.scripts]
+tactical-vision = "tactical_cz.vision:main"
+tactical-events = "tactical_cz.events:main"
+tactical-audio = "tactical_cz.audio:main"
+tactical-demo = "tactical_cz.demo:main"
+
+[build-system]
+requires = ["uv_build>=0.11.6,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv]
+package = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+markers = [
+    "network: tests that require live network calls (skipped by default)",
+    "gpu: tests that require a GPU (skipped by default)",
+    "slow: tests that take more than a few seconds",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM", "RET"]
+ignore = ["E501"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+.ruff_cache/
+
+# uv lockfile committed for reproducibility (do NOT ignore uv.lock)
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+.ipynb_checkpoints/
+
+# Selenium temp (if we end up needing it)
+downloaded_files/
+
+# ML artifacts — too big to commit
+# Raw videos (broadcasts, ~1-5GB each)
+data/raw/
+# Intermediate processed (tracking parquets, feature caches)
+data/interim/
+# Final processed outputs — small enough that we could commit but ignored
+# by default to keep repo light; promote to committed when stable
+data/processed/
+
+# Model weights — fetched from HuggingFace or trained on demand
+models/
+checkpoints/
+*.pt
+*.pth
+*.safetensors
+*.bin
+
+# Training logs / runs
+wandb/
+mlruns/
+lightning_logs/
+runs/
+outputs/
+
+# Local secrets / configs
+.env
+.env.local
+configs/local/
+.anthropic_key
+.huggingface_token
+
+# Logs
+logs/
+*.log
