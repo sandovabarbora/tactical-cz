@@ -116,7 +116,17 @@ def _load_model(cfg: InferConfig, device: str) -> BASModel:
     if cfg.checkpoint:
         ckpt = torch.load(cfg.checkpoint, map_location="cpu", weights_only=False)
         sd = ckpt.get("state_dict", ckpt)
+        # Two formats supported:
+        #   (a) full BASModel checkpoint — keys like "backbone.*" / "head.*",
+        #       optionally "model." prefixed if saved by Lightning
+        #   (b) head-only checkpoint from events.train (post-2026-05-18
+        #       embedding-cache refactor) — keys are just "net.0.weight" etc.
         sd = {k.removeprefix("model."): v for k, v in sd.items()}
+        is_head_only = not any(k.startswith("backbone.") for k in sd)
+        if is_head_only:
+            # Re-wrap under "head." so it lands in BASModel.head.net.*
+            sd = {f"head.{k}": v for k, v in sd.items()}
+            logger.info("Detected head-only checkpoint; backbone stays at pretrained weights.")
         missing, unexpected = model.load_state_dict(sd, strict=False)
         if missing:
             logger.warning("Missing keys when loading checkpoint: %s", missing[:5])

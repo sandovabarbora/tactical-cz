@@ -136,20 +136,47 @@ The foundation models the research agents recommended (MatchVision: CVPR'25 arXi
 
 ## 4. Events module scaffold
 
-`src/tactical_cz/events/` is **trigger-ready** (2026-05-18):
-- `downloader.py` ✓ implemented (HF download + AES extract via pyzipper)
+`src/tactical_cz/events/` is **trigger-ready, MPS-only Phase 2 path** (2026-05-18 refactor):
+- `downloader.py` ✓ HF download + AES extract via pyzipper
 - `dataset.py` ✓ schema-correct skeleton against verified Labels-ball.json layout
 - `model.py` ✓ V-JEPA2-L backbone + BAS head, MPS-smoke-tested on a real Sparta clip (0.41s/clip)
-- `train.py` ✓ Lightning loop, AdamW + OneCycle cosine, BCEWithLogits multi-label, wandb-gated, ModelCheckpoint top-3
-- `infer.py` ✓ sliding-window inference over any mp4, emits `events_timeline.parquet` matching the Phase 1 schema for joinability
+- `cache_embeddings.py` ✓ runs V-JEPA2 once over a split, writes embeddings_{split}.parquet (one row per event-centered clip window + sampled negatives)
+- `train.py` ✓ head-only loop over cached embeddings (no cv2 in hot path), seconds per epoch, AdamW + cosine, BCEWithLogits with optional inverse-freq pos_weight for rare classes
+- `infer.py` ✓ sliding-window inference over any mp4; tolerates either head-only checkpoint or full BASModel checkpoint
 - `__main__.py` ✓ CLI shim (prereq checklist)
 
-Once NDA password arrives, the trigger sequence is two commands:
+### Architectural choice: frozen-backbone + cached embeddings
+
+V-JEPA2-L stays FROZEN through Phase 2. Re-encoding 100K clips every epoch is pointless; encode once, train the head over cached vectors. Wins:
+- Head training = seconds per epoch (BCE over `(B, 1024) → (B, 12)`)
+- Iterating head designs (linear vs MLP, dropout, threshold per class) is free
+- Whole pipeline runs on laptop MPS, **zero cloud bill for Phase 2 baseline**
+- RunPod GPU becomes optional, only needed if you want to LoRA-finetune the backbone (Phase 3)
+
+### Trigger sequence (post-NDA-password)
 
 ```bash
-export SOCCERNET_PASSWORD=<from email>
+# 0. One-time: set the NDA password (do this in shell rc to persist)
+export SOCCERNET_PASSWORD=<from approval email>
+
+# 1. Extract the data you've already downloaded (90 seconds)
 uv run python -m tactical_cz.events.downloader extract --split valid
-uv run python -m tactical_cz.events.train --data-dir data/raw/soccernet/spotting-ball-2025
+
+# 2. Encode it once with V-JEPA2-L. MPS: hours per split (overnight for train),
+#    minutes for valid. Resumable — flushes parquet every 5 matches.
+uv run python -m tactical_cz.events.cache_embeddings --split valid
+
+# 3. Train the head. Seconds per epoch.
+uv run python -m tactical_cz.events.train \
+    --train-embeddings data/processed/embeddings_train.parquet \
+    --val-embeddings   data/processed/embeddings_valid.parquet \
+    --epochs 30
+
+# 4. Run end-to-end inference on a Czech broadcast clip
+uv run python -m tactical_cz.events.infer \
+    --source data/raw/sparta_latest_30s.mp4 \
+    --checkpoint checkpoints/head_best.pt \
+    --out data/processed/events_timeline.parquet
 ```
 
 CLI entry: `make events INPUT=data/processed/vision_tracking.parquet`
