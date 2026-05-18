@@ -56,7 +56,7 @@ from tactical_cz.config import (
     get_device,
 )
 from tactical_cz.events.dataset import discover_matches, load_match_annotations
-from tactical_cz.events.model import BAS_LABEL_TO_ID, BAS_NUM_CLASSES
+from tactical_cz.events.model import BAS_LABEL_TO_ID, BAS_NUM_CLASSES, normalize_bas_label
 
 logger = logging.getLogger(__name__)
 
@@ -184,8 +184,10 @@ def _build_clip_windows_for_match(
         t = _gametime_to_seconds(a.get("gameTime", ""))
         if np.isnan(t):
             continue
-        label = a.get("label")
-        if label not in BAS_LABEL_TO_ID:
+        # SoccerNet emits UPPERCASE labels; normalize_bas_label is
+        # case + whitespace tolerant and returns None for unknowns.
+        label = normalize_bas_label(a.get("label", ""))
+        if label is None:
             continue
         event_frames.append((int(t * fps), label))
 

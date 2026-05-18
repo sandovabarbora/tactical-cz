@@ -42,8 +42,19 @@ def tiny_vjepa2(monkeypatch):
 
 def test_bas_classes_consistent() -> None:
     assert len(BAS_CLASSES) == BAS_NUM_CLASSES == 12
+    # Title Case per SoccerNet docs (https://www.soccer-net.org/tasks/ball-action-spotting)
     assert BAS_CLASSES[0] == "Pass"
     assert BAS_CLASSES[-1] == "Goal"
+    # normalize_bas_label maps any case → canonical Title Case
+    from tactical_cz.events.model import normalize_bas_label
+    assert normalize_bas_label("Pass") == "Pass"
+    assert normalize_bas_label("PASS") == "Pass"           # actual file format → canonical
+    assert normalize_bas_label("pass") == "Pass"
+    assert normalize_bas_label("  Pass  ") == "Pass"
+    assert normalize_bas_label("HIGH  PASS") == "High Pass" # whitespace collapse
+    assert normalize_bas_label("HIGH PASS") == "High Pass"
+    assert normalize_bas_label("not a class") is None
+    assert normalize_bas_label("") is None
     # No duplicates
     assert len(set(BAS_CLASSES)) == BAS_NUM_CLASSES
 

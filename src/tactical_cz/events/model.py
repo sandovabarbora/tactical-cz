@@ -28,10 +28,16 @@ import torch.nn as nn
 
 logger = logging.getLogger(__name__)
 
-# Canonical SoccerNet Ball Action Spotting class list. Order matches the
-# BAS 2024/2025 leaderboard so confusion matrices line up with published
-# baselines. Populated against the Labels-ball.json schema once we have
-# the NDA password and can verify; this list is the spec we plan against.
+# Canonical SoccerNet Ball Action Spotting class names per the official
+# task page (https://www.soccer-net.org/tasks/ball-action-spotting), 12
+# classes total. Order matches the task documentation listing.
+#
+# Important nuance discovered 2026-05-18: the actual Labels-ball.json
+# files (e.g. valid/england_efl/2019-10-01 - Middlesbrough - Preston
+# North End) emit labels in UPPERCASE ('PASS', 'DRIVE', ...). The docs
+# show Title Case. ``normalize_bas_label`` below smooths over the
+# divergence — code uses BAS_CLASSES (Title Case, doc-canonical), data
+# is normalized at parse time.
 BAS_CLASSES: tuple[str, ...] = (
     "Pass",
     "Drive",
@@ -48,6 +54,29 @@ BAS_CLASSES: tuple[str, ...] = (
 )
 BAS_NUM_CLASSES: int = len(BAS_CLASSES)
 BAS_LABEL_TO_ID: dict[str, int] = {name: i for i, name in enumerate(BAS_CLASSES)}
+_BAS_UPPER_TO_CANONICAL: dict[str, str] = {c.upper(): c for c in BAS_CLASSES}
+
+# Evaluation metric per SoccerNet docs: mAP@1 (1-second tolerance window).
+# Train/valid: 7 EFL games. Test: 2 games. ~500 extra unannotated games
+# from the parent Action Spotting challenge if we want self-sup pretraining.
+BAS_MAP_TOLERANCE_SECONDS: float = 1.0
+
+
+def normalize_bas_label(raw: str) -> str | None:
+    """Case-fold + whitespace-collapse a Labels-ball.json label.
+
+    Accepts any casing or internal whitespace variant. Returns the
+    canonical BAS_CLASSES name (Title Case per the official docs) if
+    recognised, else None.
+
+    Why this exists: the published label files use UPPERCASE while the
+    task documentation specifies Title Case. We anchor on the docs and
+    let the parser smooth over the file-side drift.
+    """
+    if not raw:
+        return None
+    upper = " ".join(raw.upper().split())
+    return _BAS_UPPER_TO_CANONICAL.get(upper)
 
 
 @dataclass

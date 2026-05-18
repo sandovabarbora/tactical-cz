@@ -52,16 +52,24 @@ class RenderConfig:
     annotated_video: Path
     source_video: Path
     out_html: Path
-    title: str = "Phase 2 trained-head demo on a Sparta broadcast clip"
+    title: str = "Phase 2 baseline: V-JEPA2-L + BAS head on a Sparta broadcast clip"
     lede: str = (
-        "End-to-end V-JEPA2-L → BAS head pipeline running on a 30 s Sparta "
-        "highlight, fully on Apple-silicon MPS. Proves the pipeline executes "
-        "on real Czech broadcast video before SoccerNet NDA labels arrive."
+        "Frozen V-JEPA2-L (Meta, MIT-licensed) encoder, small linear head "
+        "trained on 4 EFL matches from SoccerNet Ball Action Spotting 2025 "
+        "(~8K windows, 12 event classes), evaluated on a 30 s Sparta highlight "
+        "completely out-of-distribution. Honest baseline showing both what the "
+        "pipeline does and where it breaks."
     )
     repo_url: str = "https://github.com/sandovabarbora/tactical-cz"
     fake_label_frame: int = 350
     fake_label_window_frames: int = 50
     highlight_threshold: float = 0.5
+    # Real-labels mode flips the methodology section + chart + headline
+    # to describe a SoccerNet-trained run instead of the original
+    # fake-labels demo. Default real-labels going forward.
+    mode: str = "real-labels"               # "fake-labels" | "real-labels"
+    train_loss_final: str = "0.56"
+    val_loss_final: str = "0.88"
 
 
 def _render_shot_timeline_svg(
@@ -175,12 +183,14 @@ def render_demo(cfg: RenderConfig) -> Path:
         device=get_device(),
         clip_seconds=4.0,
         highlight_threshold=cfg.highlight_threshold,
+        mode=cfg.mode,
         fake_label_frame=cfg.fake_label_frame,
         fake_label_second=int(round(fake_second)),
         fake_label_low=fake_low,
         fake_label_high=fake_high,
         signal_ratio=f"{signal_ratio:.1f}",
-        train_loss_final="0.0007",
+        train_loss_final=cfg.train_loss_final,
+        val_loss_final=cfg.val_loss_final,
         shot_chart_svg=_render_shot_timeline_svg(df, fake_low, fake_high),
         per_class_table=_per_class_table(df),
     )
