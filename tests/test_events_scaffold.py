@@ -160,3 +160,50 @@ def test_infer_cli_requires_source() -> None:
     with pytest.raises(SystemExit) as exc:
         main([])
     assert exc.value.code != 0
+
+
+def test_head_only_checkpoint_lands_in_bas_model(tmp_path, monkeypatch) -> None:
+    """Regression: head-only ckpt from train.py must land in BASModel.head.
+
+    Bug history (2026-05-18): BASHead wraps layers under self.net (keys
+    like 'net.1.weight'), but BASModel.head is the Sequential directly
+    (keys like '1.weight'). Naive `head.X` prefix gave `head.net.X` which
+    silently failed to match — load_state_dict reported unexpected keys
+    but didn't raise, so inference ran with random-init weights and
+    looked like training had achieved nothing. Demo on Sparta clip went
+    from signal_ratio=1x → 20.7x once the remap was correct.
+    """
+    from tactical_cz.events.train import BASHead
+    from tactical_cz.events.model import BASModel, BASModelConfig
+    from transformers import VJEPA2Config, VJEPA2Model
+    import torch
+
+    # Wire a tiny V-JEPA2 stand-in so the test stays offline
+    cfg = VJEPA2Config(
+        hidden_size=64, num_hidden_layers=2, num_attention_heads=4,
+        intermediate_size=128, crop_size=64, frames_per_clip=8,
+    )
+    tiny = VJEPA2Model(cfg)
+    monkeypatch.setattr(
+        "transformers.VJEPA2Model.from_pretrained",
+        classmethod(lambda cls, *a, **kw: tiny),
+    )
+
+    # 1. Train a BASHead with distinctive weights
+    head = BASHead(embed_dim=64, num_classes=12)
+    sentinel = torch.full_like(head.net[1].weight, 0.7777)
+    head.net[1].weight.data.copy_(sentinel)
+    ckpt_path = tmp_path / "head.pt"
+    torch.save({"state_dict": head.state_dict()}, ckpt_path)
+
+    # 2. Build a fresh BASModel and load via infer's loader logic
+    from tactical_cz.events.infer import InferConfig, _load_model
+    cfg_inf = InferConfig(source=tmp_path / "fake.mp4", checkpoint=ckpt_path)
+    model = _load_model(cfg_inf, device="cpu")
+
+    # 3. The sentinel weights MUST have landed in BASModel.head[1].weight
+    loaded = model.head[1].weight.data
+    assert torch.allclose(loaded, sentinel), (
+        "head-only ckpt did not land in BASModel.head — infer would run "
+        "with random-init head (the original bug)"
+    )

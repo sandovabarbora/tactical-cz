@@ -76,6 +76,7 @@ class CacheConfig:
     negatives_per_minute: int = 6          # ~1 negative per 10s of match
     batch_size: int = 4
     flush_every_n_matches: int = 5         # write partial parquet so resume after crash works
+    frames_per_clip: int = 8               # subsample within window; V-JEPA2 attention OOMs above ~16 on MPS
 
 
 # Labels-ball.json's gameTime field is e.g. "1 - 0:23.480" (period - mm:ss.ms)
@@ -106,28 +107,48 @@ def _load_video_meta(video_path: Path) -> tuple[float, int]:
     return fps, total
 
 
-def _decode_clip(video_path: Path, center_frame: int, clip_frames: int, resize: int) -> np.ndarray:
-    """Seek to a window centered at center_frame, decode clip_frames RGB frames, resize."""
-    half = clip_frames // 2
+def _decode_clip(
+    video_path: Path,
+    center_frame: int,
+    window_frames: int,
+    resize: int,
+    sample_frames: int = 8,
+) -> np.ndarray:
+    """Seek to a window centered at center_frame, return sample_frames evenly sampled.
+
+    V-JEPA2 attention scales O(T²) over tokens; encoding 100 dense frames
+    (4s @ 25fps) at 256×256 needs ~40 GB on MPS. Sparse temporal sampling
+    is the standard pattern (V-JEPA2 paper uses 16 frames for many tasks);
+    we default to 8 for laptop comfort, bump in CacheConfig for GPU runs.
+    """
+    half = window_frames // 2
     start = max(0, center_frame - half)
     cap = cv2.VideoCapture(str(video_path))
     cap.set(cv2.CAP_PROP_POS_FRAMES, start)
+
+    # Compute which indices within the window we'll keep (linspace)
+    if sample_frames >= window_frames:
+        keep_indices = set(range(window_frames))
+    else:
+        keep_indices = set(np.linspace(0, window_frames - 1, sample_frames).astype(int).tolist())
+
     frames: list[np.ndarray] = []
-    while len(frames) < clip_frames:
+    for w_idx in range(window_frames):
         ret, frame = cap.read()
         if not ret:
             break
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = cv2.resize(frame, (resize, resize))
-        frames.append(frame)
+        if w_idx in keep_indices:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = cv2.resize(frame, (resize, resize))
+            frames.append(frame)
     cap.release()
-    if len(frames) < clip_frames:
-        # Pad with the last good frame (edge of video case)
+
+    if len(frames) < sample_frames:
         if not frames:
             raise ValueError(f"No frames at {video_path} around {center_frame}")
-        while len(frames) < clip_frames:
+        while len(frames) < sample_frames:
             frames.append(frames[-1])
-    return np.stack(frames, axis=0)        # (T, H, W, 3) uint8
+    return np.stack(frames, axis=0)        # (sample_frames, H, W, 3) uint8
 
 
 def _build_clip_windows_for_match(
@@ -221,7 +242,7 @@ def cache_embeddings(cfg: CacheConfig) -> Path:
 
     cfg.out_parquet.parent.mkdir(parents=True, exist_ok=True)
     all_rows: list[dict] = []
-    clip_frames_per_window = int(cfg.clip_seconds * cfg.fps)
+    window_frames = int(cfg.clip_seconds * cfg.fps)
 
     for m_idx, match_dir in enumerate(matches, 1):
         windows, video_path, fps = _build_clip_windows_for_match(match_dir, cfg)
@@ -232,7 +253,7 @@ def cache_embeddings(cfg: CacheConfig) -> Path:
         for batch_start in range(0, len(windows), cfg.batch_size):
             batch = windows[batch_start: batch_start + cfg.batch_size]
             clips = np.stack([
-                _decode_clip(video_path, center, clip_frames_per_window, cfg.resize)
+                _decode_clip(video_path, center, window_frames, cfg.resize, cfg.frames_per_clip)
                 for center, _ in batch
             ])
             embeddings = _embed_batch(backbone, clips, device)

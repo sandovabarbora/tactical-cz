@@ -66,41 +66,52 @@ class InferConfig:
     stride_seconds: float = 1.0
     resize: int = 256
     threshold: float = 0.3
+    frames_per_clip: int = 8               # subsample inside the window; matches cache_embeddings default
 
 
 def _read_clip_windows(
     source: Path,
-    clip_frames: int,
+    window_frames: int,
     stride_frames: int,
     resize: int,
+    sample_frames: int = 8,
 ):
-    """Generator of (center_frame_idx, tensor[T, 3, H, W]) windows.
+    """Generator of (center_frame_idx, tensor[sample_frames, 3, H, W]) windows.
 
-    Pure cv2; PyAV would be marginally faster but adds a heavy dep.
-    Broadcast clips are short, so seek overhead is acceptable.
+    Reads the full window but emits only ``sample_frames`` evenly-spaced
+    indices. V-JEPA2 attention scales O(T²), so dense 100-frame clips
+    (4s @ 25fps) at 256×256 OOM on MPS. Sparse temporal sampling is the
+    standard pattern (see V-JEPA2 paper sec. 4).
     """
     cap = cv2.VideoCapture(str(source))
     if not cap.isOpened():
         raise IOError(f"Could not open {source}")
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    frames: list[np.ndarray] = []
+    # Indices within the rolling window that we'll keep
+    if sample_frames >= window_frames:
+        keep = set(range(window_frames))
+    else:
+        keep = set(np.linspace(0, window_frames - 1, sample_frames).astype(int).tolist())
+
+    frame_buf: list[np.ndarray] = []     # ring buffer of resized RGB frames, length window_frames
     frame_idx = 0
-    next_emit = clip_frames - 1
+    next_emit = window_frames - 1
     while frame_idx < total:
         ret, frame = cap.read()
         if not ret:
             break
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = cv2.resize(frame, (resize, resize))
-        frames.append(frame)
-        if len(frames) > clip_frames:
-            frames.pop(0)
-        if len(frames) == clip_frames and frame_idx >= next_emit:
-            arr = np.stack(frames, axis=0).astype(np.float32) / 255.0
+        frame_buf.append(frame)
+        if len(frame_buf) > window_frames:
+            frame_buf.pop(0)
+        if len(frame_buf) == window_frames and frame_idx >= next_emit:
+            sampled = np.stack([frame_buf[i] for i in sorted(keep)], axis=0)
+            arr = sampled.astype(np.float32) / 255.0
             arr = (arr - 0.5) / 0.5
             t = torch.from_numpy(arr).permute(0, 3, 1, 2)
-            center = frame_idx - clip_frames // 2
+            center = frame_idx - window_frames // 2
             yield center, t
             next_emit += stride_frames
         frame_idx += 1
@@ -124,8 +135,11 @@ def _load_model(cfg: InferConfig, device: str) -> BASModel:
         sd = {k.removeprefix("model."): v for k, v in sd.items()}
         is_head_only = not any(k.startswith("backbone.") for k in sd)
         if is_head_only:
-            # Re-wrap under "head." so it lands in BASModel.head.net.*
-            sd = {f"head.{k}": v for k, v in sd.items()}
+            # BASHead (train.py) wraps its layers in self.net = Sequential(...)
+            # → keys look like "net.0.weight". BASModel.head is the Sequential
+            # directly (no inner attribute) → keys are "head.0.weight". We
+            # strip the BASHead "net." prefix and add the BASModel "head." one.
+            sd = {f"head.{k.removeprefix('net.')}": v for k, v in sd.items()}
             logger.info("Detected head-only checkpoint; backbone stays at pretrained weights.")
         missing, unexpected = model.load_state_dict(sd, strict=False)
         if missing:
@@ -159,7 +173,7 @@ def run_inference(cfg: InferConfig) -> Path:
 
     rows: list[dict] = []
     for center_idx, clip in _read_clip_windows(
-        cfg.source, clip_frames, stride_frames, cfg.resize,
+        cfg.source, clip_frames, stride_frames, cfg.resize, cfg.frames_per_clip,
     ):
         with torch.no_grad():
             logits = model(clip.unsqueeze(0).to(device))
