@@ -61,6 +61,8 @@ class PipelineConfig:
     use_ball_detector: bool = False         # second-pass ball detection (slow + optional)
     write_annotated_video: bool = False     # save annotated mp4 alongside parquet
     pitch_keypoint_min: int = 4             # min visible landmarks for homography
+    tracker_backend: str = "botsort"        # "botsort" | "bytetrack"
+    tracker_with_reid: bool = True          # OSNet appearance re-ID (BotSort only)
 
 
 class VisionPipeline:
@@ -72,7 +74,11 @@ class VisionPipeline:
         self.player_detector = PlayerDetector()
         self.pitch_detector = PitchDetector()
         self.ball_detector = BallDetector() if self.config.use_ball_detector else None
-        self.tracker = PlayerTracker(TrackerConfig(frame_rate=25))
+        self.tracker = PlayerTracker(TrackerConfig(
+            frame_rate=25,
+            backend=self.config.tracker_backend,
+            with_reid=self.config.tracker_with_reid,
+        ))
         self.team_clf = TeamClassifier()
         self._team_fitted = False
 
@@ -132,8 +138,8 @@ class VisionPipeline:
                     except ValueError as exc:
                         logger.warning("Team fit failed: %s — retrying later", exc)
 
-            # Track
-            tracked = self.tracker.update(frame_idx, player_dets)
+            # Track (BoxMOT needs the raw frame for re-ID crops + CMC)
+            tracked = self.tracker.update(frame_idx, player_dets, frame)
 
             # Team assignment (if fitted)
             team_ids = (
@@ -226,6 +232,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--team-fit-frames", type=int, default=50)
     parser.add_argument("--use-ball-detector", action="store_true",
                         help="Run a second-pass ball-only detector (slow)")
+    parser.add_argument("--tracker", choices=["botsort", "bytetrack"], default="botsort",
+                        help="Tracker backend (default: botsort, supports re-ID)")
+    parser.add_argument("--no-reid", action="store_true",
+                        help="Disable OSNet appearance re-ID (BotSort only)")
     args = parser.parse_args(argv)
 
     configure_logging()
@@ -235,6 +245,8 @@ def main(argv: list[str] | None = None) -> int:
         frame_stride=args.stride,
         team_fit_frames=args.team_fit_frames,
         use_ball_detector=args.use_ball_detector,
+        tracker_backend=args.tracker,
+        tracker_with_reid=not args.no_reid,
     )
     pipe = VisionPipeline(cfg)
     df = pipe.process_video(args.input, max_frames=args.max_frames)

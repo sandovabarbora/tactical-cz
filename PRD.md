@@ -133,7 +133,7 @@ OUTPUT: Gradio interface
 
 - **Python 3.12** (uv-managed)
 - **PyTorch + HuggingFace Transformers + Lightning** (model training)
-- **Ultralytics YOLO + BoxMOT + supervision** (vision baseline via Roboflow sports)
+- **Ultralytics YOLO + BoxMOT 18 + supervision** (vision baseline via Roboflow sports). Tracker: BotSort (BoxMOT 18 per-tracker class) with OSNet x0_25 MSMT17 appearance re-ID — measured 32% reduction in tracker fragmentation vs sv.ByteTrack on the same Sparta broadcast clip (144 → 98 unique IDs over 250 frames, avg track length 13.7 → 21.4). Re-ID is opt-out via `--no-reid`; ByteTrack remains available via `--tracker bytetrack`.
 - **SoccerNet devkit** (`pip install SoccerNet`) for data + benchmark integration
 - **OpenAI Whisper / faster-whisper** (ASR)
 - **mplsoccer + kloppy + socceraction** (football-specific analytics)
