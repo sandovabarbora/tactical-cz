@@ -92,18 +92,30 @@ def extract_bas_split(
 ) -> Path:
     """AES-decrypt one BAS split's zip into a sibling directory.
 
-    Password resolution: explicit argument > SOCCERNET_PASSWORD env var.
+    Password resolution (first hit wins):
+        1. explicit ``password`` argument
+        2. ``SOCCERNET_PASSWORD`` in the current shell environment
+        3. ``SOCCERNET_PASSWORD`` in a ``.env`` file at project root
+           (loaded transparently via python-dotenv, .env is gitignored)
+
     Get the password by filling the NDA Google Form (NDA_FORM_URL above).
 
     Skips files that already exist on disk so re-running is safe.
     Returns the extracted directory path.
     """
     if password is None:
+        # python-dotenv silently no-ops if .env doesn't exist or has no
+        # SOCCERNET_PASSWORD entry — safe to call unconditionally
+        from dotenv import load_dotenv
+        load_dotenv()
         password = os.environ.get(NDA_PASSWORD_ENV)
     if not password:
         raise RuntimeError(
-            f"No password provided. Set ${NDA_PASSWORD_ENV} or pass "
-            f"password=..., obtained from the SoccerNet NDA form:\n  {NDA_FORM_URL}"
+            f"No password provided. Either:\n"
+            f"  - pass password=... explicitly\n"
+            f"  - export {NDA_PASSWORD_ENV}=... in your shell\n"
+            f"  - add {NDA_PASSWORD_ENV}=... to a .env file at project root\n"
+            f"Get the password from: {NDA_FORM_URL}"
         )
 
     local_dir = Path(local_dir) if local_dir else SOCCERNET_DIR
