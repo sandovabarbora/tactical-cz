@@ -53,7 +53,9 @@ outputs/
 
 # Local secrets / configs
 .env
-.env.local
+.env.*
+.envcd
+.envcdcd
 configs/local/
 .anthropic_key
 .huggingface_token
