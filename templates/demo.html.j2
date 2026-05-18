@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="generator" content="tactical-cz">
+<title>tactical-cz · Phase 2 demo</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --paper: #f1eee6;
+    --ink: #221f1c;
+    --ink-soft: #4c4842;
+    --muted: #76706a;
+    --rule: #d8d2c4;
+    --accent: #4a7c4a;
+    --accent-deep: #335633;
+    --accent-soft: #e2ecdf;
+    --maxw: 44rem;
+    --maxw-wide: 64rem;
+    --gap-1: 0.5rem;
+    --gap-2: 1rem;
+    --gap-3: 1.75rem;
+    --gap-4: 2.75rem;
+    --gap-5: 4.5rem;
+    --display: "Source Sans 3", -apple-system, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap");
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--display); font-size: 17px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main, header, footer { max-width: var(--maxw); margin: 0 auto; padding: 0 1.2rem; }
+  main.wide, header.wide, .wide { max-width: var(--maxw-wide); }
+
+  header { padding-top: var(--gap-4); padding-bottom: var(--gap-3); }
+  header .eyebrow {
+    display: inline-block;
+    font-family: var(--mono); font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-soft);
+    padding: 0.25rem 0.6rem; border-radius: 2px; margin-bottom: 1rem;
+  }
+  h1 {
+    font-size: clamp(1.8rem, 3.5vw, 2.4rem); font-weight: 700;
+    line-height: 1.15; margin: 0 0 0.6rem; letter-spacing: -0.012em;
+  }
+  header p.lede {
+    font-size: 1.1rem; color: var(--ink-soft); margin: 0;
+  }
+  .byline {
+    margin-top: var(--gap-2); padding-top: var(--gap-2);
+    border-top: 1px solid var(--rule);
+    display: flex; gap: var(--gap-2); flex-wrap: wrap;
+    font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+  }
+  .byline a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+  .byline a:hover { border-bottom-color: var(--accent); }
+
+  h2 {
+    font-size: 1.4rem; font-weight: 700; line-height: 1.2;
+    margin: var(--gap-4) 0 var(--gap-2); padding-top: var(--gap-2);
+    border-top: 2px solid var(--ink);
+  }
+  h3 {
+    font-size: 1.05rem; font-weight: 600; margin: var(--gap-3) 0 0.5rem;
+    color: var(--ink-soft);
+  }
+  p, ul { margin: 0 0 var(--gap-2); }
+  ul { padding-left: 1.2rem; }
+  li { margin-bottom: 0.4rem; }
+  code, .code {
+    font-family: var(--mono); font-size: 0.86em;
+    background: var(--paper); color: var(--ink-soft);
+    padding: 0.05rem 0.32rem; border-radius: 2px;
+  }
+  pre {
+    background: var(--paper); color: var(--ink);
+    padding: var(--gap-2); border-radius: 3px;
+    font-family: var(--mono); font-size: 0.82rem; line-height: 1.5;
+    overflow-x: auto; border: 1px solid var(--rule);
+  }
+  pre code { background: transparent; padding: 0; }
+
+  .video-wrap {
+    margin: var(--gap-3) 0;
+    background: var(--ink); border-radius: 3px; overflow: hidden;
+    box-shadow: 0 1px 0 var(--rule);
+  }
+  .video-wrap video { display: block; width: 100%; height: auto; }
+  .video-caption {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+    padding: 0.6rem 1rem; border-top: 1px solid var(--rule);
+    background: var(--paper);
+  }
+
+  .chart-wrap {
+    margin: var(--gap-3) 0; padding: var(--gap-2);
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 3px;
+  }
+  .chart-wrap svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  .chart-caption {
+    font-family: var(--mono); font-size: 0.74rem; color: var(--muted);
+    margin-top: 0.6rem;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: var(--gap-2) 0; }
+  th, td { padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid var(--rule); }
+  th { font-family: var(--mono); font-size: 0.74rem; text-transform: uppercase;
+       letter-spacing: 0.06em; color: var(--muted); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.focus td { background: var(--accent-soft); color: var(--accent-deep); font-weight: 600; }
+
+  .stat {
+    display: inline-block; padding: 0.4rem 0.7rem; background: var(--accent-soft);
+    color: var(--accent-deep); border-radius: 3px;
+    font-family: var(--mono); font-weight: 500;
+  }
+
+  .callout {
+    margin: var(--gap-3) 0; padding: var(--gap-2); border: 1px solid var(--rule);
+    border-radius: 3px; background: #fffefb;
+  }
+  .callout strong { color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  footer {
+    margin-top: var(--gap-5); padding: var(--gap-3) 0;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+  }
+  footer a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="eyebrow">tactical-cz · Phase 2 demo</span>
+  <h1>{{ title }}</h1>
+  <p class="lede">{{ lede }}</p>
+  <p class="byline">
+    <span>{{ generated_at }}</span>
+    <span><a href="{{ repo_url }}">github.com/sandovabarbora/tactical-cz</a></span>
+    <span>V-JEPA2-L · {{ n_windows }} sliding windows · {{ device }}</span>
+  </p>
+</header>
+
+<main>
+
+<section>
+  <h2>The annotated clip</h2>
+  <p>The 30-second clip below is from {{ source_video }}. Each frame is overlaid with the model's per-class confidence for the surrounding {{ clip_seconds }} s window. Bars at the bottom show every BAS class; top-1 is highlighted whenever it crosses {{ highlight_threshold }}.</p>
+  <div class="video-wrap">
+    <video controls preload="metadata" poster="">
+      <source src="{{ annotated_video_rel }}" type="video/mp4">
+    </video>
+    <div class="video-caption">{{ annotated_video_rel }} · {{ video_size_mb }} MB · {{ video_duration }}s</div>
+  </div>
+</section>
+
+<section>
+  <h2>What's actually happening</h2>
+  <p>This is a <strong>fake-labels demo</strong> assembled to prove the pipeline runs end-to-end on real Czech broadcast video before the real SoccerNet NDA password arrives:</p>
+  <ol>
+    <li>{{ n_windows }} sliding 4-second windows were sampled at 1-second strides over the Sparta clip.</li>
+    <li>Each window was encoded with <code>facebook/vjepa2-vitl-fpc64-256</code> (frozen, 326 M params) into a 1024-d embedding on Apple-silicon MPS.</li>
+    <li>A <strong>synthetic "Shot" label was placed at frame {{ fake_label_frame }} (~{{ fake_label_second }} s)</strong>, ±2 s window.</li>
+    <li>A small linear head (1024 → 12 BAS classes) was trained for 100 epochs over the cached embeddings (train loss converged to {{ train_loss_final }}).</li>
+    <li>Sliding-window inference re-ran the trained pipeline; the bar overlay you saw above is the result.</li>
+  </ol>
+  <div class="callout">
+    <p><strong>Why fake?</strong> The real SoccerNet Ball Action Spotting labels are gated behind an NDA Google Form. While we wait for that password, this demo proves the full pipeline executes on real broadcast video and that the head actually learns from V-JEPA2 features. Replace the fake label with real annotations and re-run the same three commands — the trigger sequence is documented in <a href="{{ repo_url }}/blob/main/docs/PHASE2_KICKOFF.md">PHASE2_KICKOFF.md</a>.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Headline signal</h2>
+  <p>If the head is doing its job, probability of "Shot" should peak around the fake-labeled frames and stay low elsewhere. Measured signal ratio (mean P(Shot) on labelled windows ÷ mean on un-labelled windows): <span class="stat">{{ signal_ratio }}×</span></p>
+  <div class="chart-wrap">
+    {{ shot_chart_svg | safe }}
+    <div class="chart-caption">P(Shot) along the 30-second clip. Shaded band = fake-labelled region (frames {{ fake_label_low }}–{{ fake_label_high }}). Trained head sharpens to ~0.99 inside, drops to ~0.05 outside.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Per-class probabilities, summarised</h2>
+  <p>Top-confidence frame for each BAS class across the clip (ranked by max). Rows where the max is below 0.5 are mostly noise; the trained head only learned to fire on "Shot".</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th class="num">Max P</th>
+        <th class="num">At frame</th>
+        <th class="num">At second</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for row in per_class_table %}
+      <tr {% if row.cls == "Shot" %}class="focus"{% endif %}>
+        <td>{{ row.cls }}</td>
+        <td class="num">{{ "%.3f"|format(row.max_p) }}</td>
+        <td class="num">{{ row.at_frame }}</td>
+        <td class="num">{{ "%.2f"|format(row.at_second) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Reproducing this on your own clip</h2>
+  <p>Once SoccerNet NDA password arrives, the trigger sequence is four commands:</p>
+  <pre><code>export SOCCERNET_PASSWORD=&lt;from approval email&gt;
+
+# 1. Decrypt the AES zips you already downloaded
+uv run python -m tactical_cz.events.downloader extract --split valid
+
+# 2. Run V-JEPA2 once over the split, cache embeddings to parquet
+uv run python -m tactical_cz.events.cache_embeddings --split valid
+
+# 3. Fit the head over cached embeddings (seconds per epoch)
+uv run python -m tactical_cz.events.train \
+    --train-embeddings data/processed/embeddings_train.parquet \
+    --val-embeddings   data/processed/embeddings_valid.parquet \
+    --epochs 30
+
+# 4. Run end-to-end inference on any clip you have
+uv run python -m tactical_cz.events.infer \
+    --source data/raw/your_clip.mp4 \
+    --checkpoint checkpoints/head_best.pt \
+    --out data/processed/events_timeline.parquet</code></pre>
+  <p>The same <code>annotate</code> + <code>render</code> modules used for this page will produce a fresh annotated clip and dashboard:</p>
+  <pre><code>uv run python -m tactical_cz.demo.annotate \
+    --source data/raw/your_clip.mp4 \
+    --events data/processed/events_timeline.parquet
+uv run python -m tactical_cz.demo.render \
+    --events data/processed/events_timeline.parquet \
+    --annotated outputs/events_annotated.mp4</code></pre>
+</section>
+
+</main>
+
+<footer>
+  <p>tactical-cz · multimodal AI for Czech football broadcasts · MIT licence (code), GPL-3.0 for SoccerNet-derived weights</p>
+  <p>built by <a href="https://datasimply.eu">Barbora Šandová</a> · <a href="{{ repo_url }}">repo</a></p>
+</footer>
+
+</body>
+</html>
