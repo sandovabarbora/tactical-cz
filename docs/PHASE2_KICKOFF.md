@@ -136,13 +136,21 @@ The foundation models the research agents recommended (MatchVision: CVPR'25 arXi
 
 ## 4. Events module scaffold
 
-`src/tactical_cz/events/` currently has:
-- `downloader.py` ✓ **implemented** (HF SoccerNet/SN-BAS-2025, real)
-- `dataset.py` — stub. Phase 2 next: PyTorch Dataset yielding (frames, labels) from BAS clips
-- `model.py` — stub. Phase 2: wrap MatchVision / V-JEPA2 + BAS head
-- `train.py` — stub. Phase 2: Lightning loop, wandb, checkpoints
-- `infer.py` — stub. Phase 2: run trained model on a tactical-cz vision parquet
-- `__main__.py` ✓ CLI shim (currently prints the prerequisite checklist)
+`src/tactical_cz/events/` is **trigger-ready** (2026-05-18):
+- `downloader.py` ✓ implemented (HF download + AES extract via pyzipper)
+- `dataset.py` ✓ schema-correct skeleton against verified Labels-ball.json layout
+- `model.py` ✓ V-JEPA2-L backbone + BAS head, MPS-smoke-tested on a real Sparta clip (0.41s/clip)
+- `train.py` ✓ Lightning loop, AdamW + OneCycle cosine, BCEWithLogits multi-label, wandb-gated, ModelCheckpoint top-3
+- `infer.py` ✓ sliding-window inference over any mp4, emits `events_timeline.parquet` matching the Phase 1 schema for joinability
+- `__main__.py` ✓ CLI shim (prereq checklist)
+
+Once NDA password arrives, the trigger sequence is two commands:
+
+```bash
+export SOCCERNET_PASSWORD=<from email>
+uv run python -m tactical_cz.events.downloader extract --split valid
+uv run python -m tactical_cz.events.train --data-dir data/raw/soccernet/spotting-ball-2025
+```
 
 CLI entry: `make events INPUT=data/processed/vision_tracking.parquet`
 
