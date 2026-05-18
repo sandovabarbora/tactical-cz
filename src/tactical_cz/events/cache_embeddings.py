@@ -73,9 +73,10 @@ class CacheConfig:
     fps: int = 25
     resize: int = 256
     label_window_seconds: float = 2.0      # event @ T → labels for any window centered in [T-2s, T+2s]
-    negatives_per_minute: int = 6          # ~1 negative per 10s of match
+    negatives_per_minute: int = 2          # ~1 negative per 30s of match (~50% positives in final mix for typical BAS match)
     batch_size: int = 4
-    flush_every_n_matches: int = 5         # write partial parquet so resume after crash works
+    flush_every_n_batches: int = 25        # write partial parquet inside a match so Ctrl-C doesn't lose everything
+    flush_every_n_matches: int = 1         # also flush after each full match (cheap insurance)
     frames_per_clip: int = 8               # subsample within window; V-JEPA2 attention OOMs above ~16 on MPS
 
 
@@ -244,13 +245,26 @@ def cache_embeddings(cfg: CacheConfig) -> Path:
     all_rows: list[dict] = []
     window_frames = int(cfg.clip_seconds * cfg.fps)
 
+    try:
+        from tqdm import tqdm
+    except ImportError:
+        tqdm = None
+
     for m_idx, match_dir in enumerate(matches, 1):
         windows, video_path, fps = _build_clip_windows_for_match(match_dir, cfg)
         match_id = str(match_dir.relative_to(cfg.split_dir))
-        logger.info("[%d/%d] %s: %d windows", m_idx, len(matches), match_id, len(windows))
+        n_batches = (len(windows) + cfg.batch_size - 1) // cfg.batch_size
+        logger.info(
+            "[%d/%d] %s: %d windows = %d batches (ETA shown below)",
+            m_idx, len(matches), match_id, len(windows), n_batches,
+        )
 
-        # Batch the windows for one forward at a time
-        for batch_start in range(0, len(windows), cfg.batch_size):
+        # Batch the windows for one forward at a time; tqdm gives ETA per batch
+        batch_iter = range(0, len(windows), cfg.batch_size)
+        if tqdm is not None:
+            batch_iter = tqdm(batch_iter, total=n_batches, unit="batch",
+                              desc=f"  encode {match_id[:40]}", leave=False)
+        for batch_idx, batch_start in enumerate(batch_iter):
             batch = windows[batch_start: batch_start + cfg.batch_size]
             clips = np.stack([
                 _decode_clip(video_path, center, window_frames, cfg.resize, cfg.frames_per_clip)
@@ -267,6 +281,11 @@ def cache_embeddings(cfg: CacheConfig) -> Path:
                     "labels": labels.tolist(),
                 })
 
+            # Periodic flush inside a match so Ctrl-C keeps progress
+            if (batch_idx + 1) % cfg.flush_every_n_batches == 0:
+                pd.DataFrame(all_rows).to_parquet(cfg.out_parquet, index=False)
+
+        # End-of-match flush
         if m_idx % cfg.flush_every_n_matches == 0:
             df = pd.DataFrame(all_rows)
             df.to_parquet(cfg.out_parquet, index=False)
