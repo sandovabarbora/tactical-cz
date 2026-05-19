@@ -52,6 +52,7 @@ class RenderConfig:
     annotated_video: Path
     source_video: Path
     out_html: Path
+    vision_parquet: Path | None = None     # Phase 1 tracking parquet → enables tactical layer
     title: str = "Phase 2 baseline: V-JEPA2-L + BAS head on a Sparta goal compilation"
     lede: str = (
         "Frozen V-JEPA2-L (Meta, MIT-licensed) encoder, small linear head "
@@ -201,6 +202,38 @@ def render_demo(cfg: RenderConfig) -> Path:
     cap.release()
     video_duration = round(total / fps, 1)
 
+    # Tactical layer (Phase 1 vision × Phase 2 events join)
+    tactical_summary = None
+    tactical_zone_svg = None
+    tactical_tilt_svg = None
+    tactical_minimaps: list[dict] = []
+    if cfg.vision_parquet and cfg.vision_parquet.exists():
+        from tactical_cz.tactical.features import compute_all
+        from tactical_cz.tactical.visualize import (
+            render_minimap_at_frame,
+            render_tilt_timeline,
+            render_zone_chart,
+        )
+        vision = pd.read_parquet(cfg.vision_parquet)
+        tact = compute_all(vision, df, fps=fps)
+        tactical_summary = tact.summary
+        tactical_zone_svg = render_zone_chart(tact.zone_distribution)
+        tactical_tilt_svg = render_tilt_timeline(tact.field_tilt_timeline)
+        # Render minimaps at the top shot moments; cap at 6 for page weight
+        for moment in tact.shot_moments[:6]:
+            svg = render_minimap_at_frame(
+                vision, moment["frame"],
+                annotation=f"t={moment['second']:.1f}s · {moment['action_zone']}",
+            )
+            tactical_minimaps.append({
+                **moment,
+                "minimap_svg": svg,
+            })
+        logger.info("Tactical layer computed: %d shot moments, %d zone classes",
+                    len(tact.shot_moments), len(tact.zone_distribution))
+    else:
+        logger.info("No vision_parquet provided; tactical layer skipped")
+
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
         autoescape=select_autoescape(default=True),
@@ -230,6 +263,10 @@ def render_demo(cfg: RenderConfig) -> Path:
         shot_chart_svg=_render_shot_timeline_svg(df, fake_low, fake_high),
         per_class_table=_per_class_table(df),
         top1_timeline=_top1_timeline(df),
+        tactical_summary=tactical_summary,
+        tactical_zone_svg=tactical_zone_svg,
+        tactical_tilt_svg=tactical_tilt_svg,
+        tactical_minimaps=tactical_minimaps,
     )
     cfg.out_html.write_text(html, encoding="utf-8")
     logger.info("Wrote demo page: %s (%d bytes)", cfg.out_html, len(html))
@@ -244,6 +281,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source", type=Path, required=True,
                         help="Original source mp4 (for label in the byline)")
     parser.add_argument("--out", type=Path, default=OUTPUTS_DIR / "demo" / "index.html")
+    parser.add_argument("--vision", type=Path, default=None,
+                        help="Phase 1 tracking parquet (enables tactical layer)")
     parser.add_argument("--fake-label-frame", type=int, default=350)
     parser.add_argument("--fake-label-window", type=int, default=50)
     args = parser.parse_args(argv)
@@ -254,6 +293,7 @@ def main(argv: list[str] | None = None) -> int:
         annotated_video=args.annotated,
         source_video=args.source,
         out_html=args.out,
+        vision_parquet=args.vision,
         fake_label_frame=args.fake_label_frame,
         fake_label_window_frames=args.fake_label_window,
     )

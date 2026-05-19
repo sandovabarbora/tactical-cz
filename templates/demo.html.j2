@@ -211,6 +211,58 @@
   </ul>
 </section>
 
+{% if tactical_summary %}
+<section class="wide">
+  <h2>Tactical layer: where the action actually happens</h2>
+  <p>Event spotting tells you <em>what</em>. Tactical layer joins it with Phase 1 vision (player positions on a 120×70 m pitch) to tell you <em>where</em>. For every detected event we pull the snapshot of all visible players on the pitch and derive features that read like a coach's notebook: field tilt, attacking-zone distribution, action centroid at peak shot moments.</p>
+
+  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin: 1.5rem 0;">
+    <div>
+      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Median field tilt</div>
+      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ "%.0f"|format(tactical_summary.median_field_tilt_m) }}<span style="font-size: 1rem; color: var(--muted); font-weight: 400;"> m</span></div>
+      <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">Action centroid on 120 m pitch. {% if tactical_summary.median_field_tilt_m > 80 %}heavily attacking{% elif tactical_summary.median_field_tilt_m > 60 %}attacking half{% elif tactical_summary.median_field_tilt_m > 40 %}midfield{% else %}defensive half{% endif %}.</div>
+    </div>
+    <div>
+      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Attacking-zone share</div>
+      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ "%.0f"|format(tactical_summary.attacking_zone_share * 100) }}<span style="font-size: 1rem; color: var(--muted); font-weight: 400;"> %</span></div>
+      <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">Of Shot+Drive top-quartile windows that fired in the attacking third.</div>
+    </div>
+    <div>
+      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Players per frame</div>
+      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ "%.1f"|format(tactical_summary.n_players_per_frame_mean) }}</div>
+      <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">Mean tracker detections. Low (≪22) = close-up camera; high = wide pitch view.</div>
+    </div>
+  </div>
+
+  <h3>Attacking zones, per event class</h3>
+  <p>For each event class, the top-quartile-confidence windows split into defensive / midfield / attacking third by action centroid x-position. Shows where the model finds each kind of event happening on the pitch.</p>
+  <div class="chart-wrap">
+    {{ tactical_zone_svg | safe }}
+  </div>
+
+  <h3>Field tilt timeline</h3>
+  <p>Mean pitch x-position of detected players, second by second. Spikes upward = attacking surge; troughs = defending/transition. Dashed lines mark the 1/3 and 2/3 of the pitch (defensive/midfield/attacking boundaries).</p>
+  <div class="chart-wrap">
+    {{ tactical_tilt_svg | safe }}
+  </div>
+
+  {% if tactical_minimaps %}
+  <h3>Minimap snapshots at peak Shot moments</h3>
+  <p>For the {{ tactical_minimaps|length }} highest-confidence Shot windows: where all detected players were on the pitch at that exact frame. Green = team A (auto-clustered by kit colour), brown = team B, grey = goalkeeper or unassigned. <em>Note:</em> "team A/B" is unsupervised K-means on HSV at clip start — no claim about Sparta vs opponent.</p>
+  <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; margin: 1rem 0;">
+    {% for m in tactical_minimaps %}
+    <div>
+      <div style="font-family: var(--mono); font-size: 0.78rem; color: var(--muted); margin-bottom: 4px;">
+        t={{ "%.1f"|format(m.second) }}s · P(Shot)={{ "%.2f"|format(m.p_shot) }} · zone: {{ m.action_zone }} · {{ m.n_players_visible }} players visible
+      </div>
+      {{ m.minimap_svg | safe }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
 <section>
   <h2>Top-1 prediction per second</h2>
   <p>For each ~1 s window, the highest-confidence BAS class. Reads left to right as the action unfolds. Multiple consecutive seconds of "Shot" or "Header" suggest the model picked up on a multi-frame event sequence, not just a single noisy spike.</p>
