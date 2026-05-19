@@ -53,6 +53,7 @@ class RenderConfig:
     source_video: Path
     out_html: Path
     vision_parquet: Path | None = None     # Phase 1 tracking parquet → enables tactical layer
+    transcript_parquet: Path | None = None # Phase 3 ASR transcript → enables commentary layer
     title: str = "Phase 2 baseline: V-JEPA2-L + BAS head on a Sparta goal compilation"
     lede: str = (
         "Frozen V-JEPA2-L (Meta, MIT-licensed) encoder, small linear head "
@@ -234,6 +235,41 @@ def render_demo(cfg: RenderConfig) -> Path:
     else:
         logger.info("No vision_parquet provided; tactical layer skipped")
 
+    # Commentary layer (Phase 3 ASR × Phase 2 events alignment)
+    commentary_events = None
+    commentary_summary = None
+    if cfg.transcript_parquet and cfg.transcript_parquet.exists():
+        from tactical_cz.audio.align import align as align_commentary
+        transcript = pd.read_parquet(cfg.transcript_parquet)
+        events_at = align_commentary(transcript, df, fps=fps)
+        commentary_events = [
+            {
+                "start_s": e.start_s,
+                "midpoint_s": e.midpoint_s,
+                "text": e.text,
+                "matched_stems": ", ".join(e.matched_stems),
+                "bas_classes": ", ".join(e.bas_classes),
+                "model_p_max": e.model_p_max,
+                "model_top_class": e.model_top_class or "—",
+                "model_top_p": e.model_top_p,
+                "agrees": e.agrees,
+            }
+            for e in events_at
+        ]
+        n_agree = sum(1 for e in events_at if e.agrees)
+        commentary_summary = {
+            "n_segments": int(len(transcript)),
+            "n_tagged": int(len(events_at)),
+            "n_agree": int(n_agree),
+            "agree_share": n_agree / max(len(events_at), 1),
+        }
+        logger.info(
+            "Commentary layer: %d segments, %d tagged, %d agree with events model",
+            commentary_summary["n_segments"], commentary_summary["n_tagged"], n_agree,
+        )
+    else:
+        logger.info("No transcript_parquet provided; commentary layer skipped")
+
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
         autoescape=select_autoescape(default=True),
@@ -267,6 +303,8 @@ def render_demo(cfg: RenderConfig) -> Path:
         tactical_zone_svg=tactical_zone_svg,
         tactical_tilt_svg=tactical_tilt_svg,
         tactical_minimaps=tactical_minimaps,
+        commentary_summary=commentary_summary,
+        commentary_events=commentary_events,
     )
     cfg.out_html.write_text(html, encoding="utf-8")
     logger.info("Wrote demo page: %s (%d bytes)", cfg.out_html, len(html))
@@ -283,6 +321,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=OUTPUTS_DIR / "demo" / "index.html")
     parser.add_argument("--vision", type=Path, default=None,
                         help="Phase 1 tracking parquet (enables tactical layer)")
+    parser.add_argument("--transcript", type=Path, default=None,
+                        help="Phase 3 ASR transcript parquet (enables commentary layer)")
     parser.add_argument("--fake-label-frame", type=int, default=350)
     parser.add_argument("--fake-label-window", type=int, default=50)
     args = parser.parse_args(argv)
@@ -294,6 +334,7 @@ def main(argv: list[str] | None = None) -> int:
         source_video=args.source,
         out_html=args.out,
         vision_parquet=args.vision,
+        transcript_parquet=args.transcript,
         fake_label_frame=args.fake_label_frame,
         fake_label_window_frames=args.fake_label_window,
     )

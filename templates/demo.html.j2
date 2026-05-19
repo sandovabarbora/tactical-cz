@@ -263,6 +263,58 @@
 </section>
 {% endif %}
 
+{% if commentary_summary %}
+<section class="wide">
+  <h2>Commentary layer: Czech ASR × event model agreement</h2>
+  <p>The third modality. Whisper-medium transcribes the Czech commentary on the broadcast, then a small keyword dictionary tags each segment with the BAS event class(es) it implies ("góóól" → Goal, "centruje na hlavičku" → Cross + Header, "tvrdá střela" → Shot, etc.). For each tagged segment we look up the events-model probability at the segment midpoint frame and report agreement.</p>
+
+  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; margin: 1.2rem 0;">
+    <div>
+      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Whisper segments</div>
+      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ commentary_summary.n_segments }}</div>
+    </div>
+    <div>
+      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Tagged with BAS class</div>
+      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ commentary_summary.n_tagged }}</div>
+    </div>
+    <div>
+      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Agree with events model</div>
+      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ commentary_summary.n_agree }}</div>
+    </div>
+    <div>
+      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Agreement share</div>
+      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ "%.0f"|format(commentary_summary.agree_share * 100) }}<span style="font-size: 1rem; color: var(--muted); font-weight: 400;"> %</span></div>
+    </div>
+  </div>
+
+  <h3>Tagged commentary moments</h3>
+  <p>Each row: a moment where the commentator said something that maps to a BAS event class, plus what the events model thought was happening at that frame. <strong>Green</strong> rows = both modalities agree (model's P for any matched class ≥ 0.30); <strong>warm</strong> rows = commentator said it but model didn't.</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="num">Time</th>
+        <th>Commentary text</th>
+        <th>Matched BAS class</th>
+        <th class="num">Model max P</th>
+        <th>Model top-1</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for ev in commentary_events %}
+      <tr {% if ev.agrees %}style="background:var(--accent-soft)"{% else %}style="background:#f7e8de"{% endif %}>
+        <td class="num">{{ "%.1f"|format(ev.midpoint_s) }}s</td>
+        <td><em>{{ ev.text }}</em></td>
+        <td>{{ ev.bas_classes }}</td>
+        <td class="num">{{ "%.2f"|format(ev.model_p_max) }}</td>
+        <td>{{ ev.model_top_class }} ({{ "%.2f"|format(ev.model_top_p) }})</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p style="font-size:0.85rem; color:var(--muted)"><em>Why this matters:</em> two independent modalities agreeing on an event is much stronger evidence than either alone. The disagreements are interesting too — either the commentator is anticipating (says "góól!" right before the goal frame), the BAS labels in training were too sparse for the model to fire (Goal class, see below), or Whisper picked up a non-event word from context. All three are diagnostic.</p>
+</section>
+{% endif %}
+
 <section>
   <h2>Top-1 prediction per second</h2>
   <p>For each ~1 s window, the highest-confidence BAS class. Reads left to right as the action unfolds. Multiple consecutive seconds of "Shot" or "Header" suggest the model picked up on a multi-frame event sequence, not just a single noisy spike.</p>
