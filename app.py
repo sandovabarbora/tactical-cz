@@ -41,7 +41,16 @@ REPO = Path(__file__).resolve().parent
 EVENTS = REPO / "demo_data" / "events_timeline_goals.parquet"
 VISION = REPO / "demo_data" / "vision_tracking_goals.parquet"
 TRANSCRIPT = REPO / "demo_data" / "transcript_goals.parquet"
-ANNOTATED_VIDEO = REPO / "docs" / "sparta_goals_annotated.mp4"
+
+# The 37 MB annotated mp4 lives on GitHub Pages (HF Space free tier
+# blocks files >10 MB without git-lfs). Local dev still finds the file
+# in docs/ first; falls back to the GitHub Pages URL on deployment.
+ANNOTATED_VIDEO_LOCAL = REPO / "docs" / "sparta_goals_annotated.mp4"
+ANNOTATED_VIDEO_URL = "https://sandovabarbora.github.io/tactical-cz/sparta_goals_annotated.mp4"
+ANNOTATED_VIDEO = (
+    str(ANNOTATED_VIDEO_LOCAL) if ANNOTATED_VIDEO_LOCAL.exists()
+    else ANNOTATED_VIDEO_URL
+)
 
 # Coach-voice system prompt: Czech default, no ML jargon, willing to admit
 # limitations in plain language. Different from the technical SYSTEM_PROMPT
@@ -150,7 +159,7 @@ with gr.Blocks(
     with gr.Row():
         with gr.Column(scale=1):
             video = gr.Video(
-                value=str(ANNOTATED_VIDEO) if ANNOTATED_VIDEO.exists() else None,
+                value=ANNOTATED_VIDEO,
                 label="Klip s AI overlay (top-3 predikce per okno, 4-second windows)",
                 interactive=False,
             )
