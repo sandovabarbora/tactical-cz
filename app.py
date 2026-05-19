@@ -138,17 +138,17 @@ def answer(question: str, history: list[dict]) -> tuple[list[dict], str]:
     return history, ""
 
 
-with gr.Blocks(
-    title="tactical-cz · Multimodální AI analýza českého fotbalu",
-    theme=gr.themes.Soft(primary_hue="green", neutral_hue="stone"),
-    css="""
-    .gradio-container { max-width: 1100px !important; }
-    .hero { padding: 1.2rem 0; }
-    .hero h1 { margin: 0 0 0.4rem; font-size: 1.7rem; }
-    .hero p { color: #4c4842; font-size: 1rem; margin: 0; }
-    .chip-row button { font-size: 0.85rem !important; padding: 0.4rem 0.7rem !important; }
-    """,
-) as demo:
+_CSS = """
+.gradio-container { max-width: 1100px !important; }
+.hero { padding: 1.2rem 0; }
+.hero h1 { margin: 0 0 0.4rem; font-size: 1.7rem; }
+.hero p { color: #4c4842; font-size: 1rem; margin: 0; }
+.chip-row button { font-size: 0.85rem !important; padding: 0.4rem 0.7rem !important; }
+"""
+_THEME = gr.themes.Soft(primary_hue="green", neutral_hue="stone")
+
+
+with gr.Blocks(title="tactical-cz · Multimodální AI analýza českého fotbalu") as demo:
     gr.HTML("""
     <div class="hero">
       <h1>tactical-cz · Multimodální AI analýza českého fotbalu</h1>
@@ -226,4 +226,4 @@ with gr.Blocks(
 
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(theme=_THEME, css=_CSS)
