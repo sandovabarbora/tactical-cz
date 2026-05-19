@@ -262,6 +262,18 @@
     <a href="#findings" style="color: var(--accent); text-decoration:none;">5 Findings</a>
     <a href="#appendix" style="color: var(--accent); text-decoration:none;">6 Appendix</a>
   </nav>
+
+  <!-- 30-second Czech read for non-ML audience (sport director, recruiter scanning, coach) -->
+  <aside style="margin-top: var(--gap-3); padding: var(--gap-2) var(--gap-3); border-left: 3px solid var(--accent); background: var(--paper-soft); border-radius: 0 3px 3px 0;">
+    <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;">30 sekund · česká verze</div>
+    <p style="margin: 0; font-size: 0.98rem; line-height: 1.6;">
+      Vzala jsem 15 minut hry Sparty proti Vikingu Stavanger (Liga konferencí 2022) a pustila skrz AI pipeline o čtyřech vrstvách. <strong>První vrstva</strong> sleduje hráče na hřišti. <strong>Druhá</strong> klasifikuje co se zrovna děje (přihrávka, střela, hlavička, …). <strong>Třetí</strong> přepisuje český komentář. <strong>Čtvrtá</strong> dá vše dohromady a umí o klipu odpovídat na otázky.
+    </p>
+    <p style="margin: 0.6rem 0 0; font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55;">
+      Co najdeš níž: video s vrstvou AI predikcí, taktická mapa hráčů, alignment komentář vs. model, a 6 předpočítaných otázek. Model je natrénovaný jen na 4 zápasech anglické 2. ligy (SoccerNet 2019/20) — nikdy neviděl český fotbal. Přesto rozumí přihrávkám, střelám i autům. Hůř zvládá centry, hlavičky, a góly (klasická long-tail past v trénovacích datech). Pro reálné nasazení = víc dat na vzácné třídy nebo dotrénovat backbone.
+      Interaktivní verzi máš na <a href="https://huggingface.co/spaces/sandovabarb/tactical-cz" style="color: var(--accent);">Gradio Space</a> — kde se můžeš zeptat na cokoliv vlastního.
+    </p>
+  </aside>
 </header>
 
 <main class="wide">
