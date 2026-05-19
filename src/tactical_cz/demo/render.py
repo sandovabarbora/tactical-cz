@@ -54,6 +54,7 @@ class RenderConfig:
     out_html: Path
     vision_parquet: Path | None = None     # Phase 1 tracking parquet → enables tactical layer
     transcript_parquet: Path | None = None # Phase 3 ASR transcript → enables commentary layer
+    agent_qa_json: Path | None = None      # Phase 4 pre-computed Claude Q&A → enables agent layer
     title: str = "Phase 2 baseline: V-JEPA2-L + BAS head on a Sparta goal compilation"
     lede: str = (
         "Frozen V-JEPA2-L (Meta, MIT-licensed) encoder, small linear head "
@@ -276,6 +277,27 @@ def render_demo(cfg: RenderConfig) -> Path:
     else:
         logger.info("No transcript_parquet provided; commentary layer skipped")
 
+    # Agent layer (Phase 4: pre-computed Claude Q&A)
+    agent_qa = None
+    if cfg.agent_qa_json and cfg.agent_qa_json.exists():
+        import json as _json
+        import markdown as _markdown
+        raw = _json.loads(cfg.agent_qa_json.read_text(encoding="utf-8"))
+        # Convert each answer from Markdown to HTML (tables, lists, bold)
+        agent_qa = [
+            {
+                "question": item["question"],
+                "answer_html": _markdown.markdown(
+                    item["answer"],
+                    extensions=["tables", "fenced_code", "sane_lists"],
+                ),
+            }
+            for item in raw
+        ]
+        logger.info("Agent layer: %d pre-computed Q&A pairs", len(agent_qa))
+    else:
+        logger.info("No agent_qa_json provided; agent layer skipped")
+
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
         autoescape=select_autoescape(default=True),
@@ -311,6 +333,7 @@ def render_demo(cfg: RenderConfig) -> Path:
         tactical_minimaps=tactical_minimaps,
         commentary_summary=commentary_summary,
         commentary_events=commentary_events,
+        agent_qa=agent_qa,
     )
     cfg.out_html.write_text(html, encoding="utf-8")
     logger.info("Wrote demo page: %s (%d bytes)", cfg.out_html, len(html))
@@ -329,6 +352,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="Phase 1 tracking parquet (enables tactical layer)")
     parser.add_argument("--transcript", type=Path, default=None,
                         help="Phase 3 ASR transcript parquet (enables commentary layer)")
+    parser.add_argument("--agent-qa", type=Path, default=None,
+                        help="Phase 4 pre-computed Q&A JSON (enables agent layer)")
     parser.add_argument("--fake-label-frame", type=int, default=350)
     parser.add_argument("--fake-label-window", type=int, default=50)
     args = parser.parse_args(argv)
@@ -341,6 +366,7 @@ def main(argv: list[str] | None = None) -> int:
         out_html=args.out,
         vision_parquet=args.vision,
         transcript_parquet=args.transcript,
+        agent_qa_json=args.agent_qa,
         fake_label_frame=args.fake_label_frame,
         fake_label_window_frames=args.fake_label_window,
     )

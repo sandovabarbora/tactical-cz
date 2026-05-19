@@ -235,7 +235,18 @@
       <div class="ph-title">Whisper-small (cs)</div>
       <div class="ph-desc">Czech commentary transcript, keyword-tagged into BAS classes for cross-modal validation.</div>
     </div>
+    {% if agent_qa %}
+    <div>
+      <div class="ph-label">Phase 4 · Agent</div>
+      <div class="ph-title">Claude Sonnet 4.6</div>
+      <div class="ph-desc">LLM Q&amp;A over the three pipeline outputs — natural-language tactical analysis of a specific clip.</div>
+    </div>
+    {% endif %}
   </div>
+
+  <!-- Pipeline grid auto-adapts to 4 columns when agent layer is present -->
+  {% if agent_qa %}<style>.pipeline { grid-template-columns: repeat(4, 1fr) !important; }
+  @media (max-width: 720px) { .pipeline { grid-template-columns: 1fr !important; } }</style>{% endif %}
 
   <p class="byline">
     <span>{{ generated_at }}</span>
@@ -352,6 +363,27 @@
     </tbody>
   </table>
   <p style="font-size:0.85rem; color:var(--muted)">Green rows: both modalities agree (model P ≥ 0.30 on a tagged class). Warm rows: commentator said it but model didn't fire. The disagreements turn out to be the most informative signal — see the finding below.</p>
+</section>
+{% endif %}
+
+{% if agent_qa %}
+<!-- ============ AGENT LAYER ============ -->
+<section>
+  <h2><span class="section-tag">Layer 4 · Natural language</span>Ask the pipeline (Claude Sonnet 4.6)</h2>
+  <p>The three modalities produce derived parquets — readable, but dense. The agent layer wraps them into a context window for an LLM, which then answers questions in plain language with citations back to the data. Below: five pre-computed questions in Czech and the model's answers. The agent has no access to raw video or audio, only the events / tactical / commentary summaries.</p>
+  <div style="display: flex; flex-direction: column; gap: 1rem; margin: var(--gap-3) 0;">
+  {% for qa in agent_qa %}
+    <details {% if loop.index <= 2 %}open{% endif %} style="background:var(--paper-soft); border:1px solid var(--rule); padding: 0.9rem 1.1rem; border-radius: 3px;">
+      <summary style="cursor:pointer; font-weight:600; font-size:1rem; color:var(--ink); list-style:none; padding-right:1rem;">
+        <span style="color:var(--accent); font-family:var(--mono); font-size:0.78rem; margin-right:0.5rem;">Q{{ loop.index }}.</span>{{ qa.question }}
+      </summary>
+      <div style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--rule); font-size: 0.95rem; line-height: 1.55;">
+        {{ qa.answer_html | safe }}
+      </div>
+    </details>
+  {% endfor %}
+  </div>
+  <p style="font-size:0.85rem; color:var(--muted)">Cost per question: ~$0.005 (input ~3 KB pipeline context + ~600-token Czech answer). The CLI <code>uv run python -m tactical_cz.agent.qa --question "..."</code> answers any new question live; the JSON behind this section is at <code>data/processed/agent_qa_goals.json</code>.</p>
 </section>
 {% endif %}
 
