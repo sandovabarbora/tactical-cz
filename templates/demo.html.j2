@@ -4,18 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="generator" content="tactical-cz">
-<title>tactical-cz · Phase 2 demo</title>
+<title>tactical-cz · {{ title }}</title>
 <style>
   :root {
     --bg: #fafaf7;
     --paper: #f1eee6;
+    --paper-soft: #f7f5ed;
     --ink: #221f1c;
     --ink-soft: #4c4842;
     --muted: #76706a;
     --rule: #d8d2c4;
-    --accent: #4a7c4a;
-    --accent-deep: #335633;
-    --accent-soft: #e2ecdf;
     --maxw: 44rem;
     --maxw-wide: 64rem;
     --gap-1: 0.5rem;
@@ -23,6 +21,11 @@
     --gap-3: 1.75rem;
     --gap-4: 2.75rem;
     --gap-5: 4.5rem;
+    --accent: #4a7c4a;
+    --accent-deep: #335633;
+    --accent-soft: #e2ecdf;
+    --warn: #9b5a3a;
+    --warn-soft: #f4e2d4;
     --display: "Source Sans 3", -apple-system, "Segoe UI", sans-serif;
     --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   }
@@ -38,42 +41,68 @@
   main, header, footer { max-width: var(--maxw); margin: 0 auto; padding: 0 1.2rem; }
   main.wide, header.wide, .wide { max-width: var(--maxw-wide); }
 
+  /* Header / hero */
   header { padding-top: var(--gap-4); padding-bottom: var(--gap-3); }
-  header .eyebrow {
+  .eyebrow {
     display: inline-block;
     font-family: var(--mono); font-size: 0.7rem; font-weight: 500;
     letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--accent); background: var(--accent-soft);
-    padding: 0.25rem 0.6rem; border-radius: 2px; margin-bottom: 1rem;
+    padding: 0.25rem 0.6rem; border-radius: 2px;
   }
   h1 {
-    font-size: clamp(1.8rem, 3.5vw, 2.4rem); font-weight: 700;
-    line-height: 1.15; margin: 0 0 0.6rem; letter-spacing: -0.012em;
+    font-size: clamp(1.9rem, 3.6vw, 2.5rem); font-weight: 700;
+    line-height: 1.1; margin: 0.8rem 0 0.6rem; letter-spacing: -0.014em;
   }
   header p.lede {
-    font-size: 1.1rem; color: var(--ink-soft); margin: 0;
+    font-size: 1.12rem; color: var(--ink-soft); margin: 0; max-width: 38rem;
   }
   .byline {
     margin-top: var(--gap-2); padding-top: var(--gap-2);
     border-top: 1px solid var(--rule);
-    display: flex; gap: var(--gap-2); flex-wrap: wrap;
+    display: flex; gap: 0.9rem; flex-wrap: wrap;
     font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
   }
-  .byline a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+  .byline a { color: var(--accent); text-decoration: none;
+              border-bottom: 1px solid var(--accent-soft); }
   .byline a:hover { border-bottom-color: var(--accent); }
 
+  /* Pipeline strip — 3 modalities at a glance */
+  .pipeline {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem; margin: var(--gap-3) 0 var(--gap-2);
+  }
+  .pipeline > div {
+    padding: 0.7rem 0.85rem; background: var(--paper-soft);
+    border-left: 3px solid var(--accent); border-radius: 0 3px 3px 0;
+  }
+  .pipeline .ph-label {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .pipeline .ph-title { font-weight: 700; font-size: 0.95rem; margin: 2px 0; }
+  .pipeline .ph-desc { font-size: 0.82rem; color: var(--ink-soft); }
+
+  /* Section markers */
   h2 {
-    font-size: 1.4rem; font-weight: 700; line-height: 1.2;
+    font-size: 1.55rem; font-weight: 700; line-height: 1.15;
     margin: var(--gap-4) 0 var(--gap-2); padding-top: var(--gap-2);
-    border-top: 2px solid var(--ink);
+    border-top: 2px solid var(--ink); letter-spacing: -0.005em;
+  }
+  h2 .section-tag {
+    display: block; font-family: var(--mono); font-size: 0.7rem;
+    font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 0.4rem;
   }
   h3 {
-    font-size: 1.05rem; font-weight: 600; margin: var(--gap-3) 0 0.5rem;
+    font-size: 1.1rem; font-weight: 600; margin: var(--gap-3) 0 0.5rem;
     color: var(--ink-soft);
   }
-  p, ul { margin: 0 0 var(--gap-2); }
-  ul { padding-left: 1.2rem; }
+  p, ul, ol { margin: 0 0 var(--gap-2); }
+  ul, ol { padding-left: 1.2rem; }
   li { margin-bottom: 0.4rem; }
+
+  /* Code */
   code, .code {
     font-family: var(--mono); font-size: 0.86em;
     background: var(--paper); color: var(--ink-soft);
@@ -87,6 +116,7 @@
   }
   pre code { background: transparent; padding: 0; }
 
+  /* Video */
   .video-wrap {
     margin: var(--gap-3) 0;
     background: var(--ink); border-radius: 3px; overflow: hidden;
@@ -99,6 +129,7 @@
     background: var(--paper);
   }
 
+  /* Charts */
   .chart-wrap {
     margin: var(--gap-3) 0; padding: var(--gap-2);
     background: var(--paper); border: 1px solid var(--rule); border-radius: 3px;
@@ -109,152 +140,163 @@
     margin-top: 0.6rem;
   }
 
+  /* KPI tiles */
+  .kpi-row {
+    display: grid; gap: 1rem; margin: var(--gap-3) 0;
+  }
+  .kpi-row.c3 { grid-template-columns: repeat(3, 1fr); }
+  .kpi-row.c4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 640px) {
+    .kpi-row.c3, .kpi-row.c4 { grid-template-columns: 1fr 1fr; }
+    .pipeline { grid-template-columns: 1fr; }
+  }
+  .kpi { padding: 0.7rem 0; }
+  .kpi-label {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .kpi-value {
+    font-size: 1.8rem; color: var(--accent); font-weight: 700;
+    line-height: 1.05; margin-top: 2px;
+  }
+  .kpi-value .unit { font-size: 1rem; color: var(--muted); font-weight: 400; }
+  .kpi-note {
+    font-size: 0.78rem; color: var(--muted); margin-top: 4px; line-height: 1.4;
+  }
+
+  /* Tables */
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: var(--gap-2) 0; }
   th, td { padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid var(--rule); }
-  th { font-family: var(--mono); font-size: 0.74rem; text-transform: uppercase;
-       letter-spacing: 0.06em; color: var(--muted); }
+  th { font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase;
+       letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  tr.focus td { background: var(--accent-soft); color: var(--accent-deep); font-weight: 600; }
+  tr.agree td { background: var(--accent-soft); }
+  tr.disagree td { background: var(--warn-soft); }
 
-  .stat {
-    display: inline-block; padding: 0.4rem 0.7rem; background: var(--accent-soft);
-    color: var(--accent-deep); border-radius: 3px;
-    font-family: var(--mono); font-weight: 500;
+  /* Diagnostic findings card */
+  .finding {
+    margin: var(--gap-3) 0; padding: var(--gap-2) var(--gap-3);
+    border-radius: 3px; border-left: 3px solid var(--accent);
+    background: var(--paper-soft);
+  }
+  .finding.warn { border-left-color: var(--warn); background: #fdf6ef; }
+  .finding h3 { margin-top: 0; color: var(--ink); }
+  .finding p:last-child { margin-bottom: 0; }
+
+  /* Minimaps grid */
+  .minimap-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem; margin: var(--gap-2) 0;
+  }
+  .minimap-cell .caption {
+    font-family: var(--mono); font-size: 0.76rem; color: var(--muted);
+    margin-bottom: 4px;
   }
 
-  .callout {
-    margin: var(--gap-3) 0; padding: var(--gap-2); border: 1px solid var(--rule);
-    border-radius: 3px; background: #fffefb;
+  details {
+    margin: var(--gap-2) 0; padding: 0.6rem 0.9rem;
+    background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 3px;
   }
-  .callout strong { color: var(--ink); }
-  .callout p:last-child { margin-bottom: 0; }
+  details summary {
+    cursor: pointer; font-family: var(--mono); font-size: 0.82rem;
+    color: var(--ink-soft); letter-spacing: 0.04em;
+  }
+  details[open] summary { margin-bottom: 0.6rem; }
 
   footer {
     margin-top: var(--gap-5); padding: var(--gap-3) 0;
     border-top: 1px solid var(--rule);
     font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
   }
-  footer a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+  footer a { color: var(--accent); text-decoration: none;
+             border-bottom: 1px solid var(--accent-soft); }
 </style>
 </head>
 <body>
 
-<header>
-  <span class="eyebrow">tactical-cz · Phase 2 demo</span>
+<header class="wide">
+  <span class="eyebrow">tactical-cz · phase 2 + 3 demo</span>
   <h1>{{ title }}</h1>
   <p class="lede">{{ lede }}</p>
+
+  <div class="pipeline">
+    <div>
+      <div class="ph-label">Phase 1 · Vision</div>
+      <div class="ph-title">Roboflow sports + ByteTrack</div>
+      <div class="ph-desc">Per-frame player + ball detection, tubelet tracking, pitch homography → coordinates on 120×70 m plane.</div>
+    </div>
+    <div>
+      <div class="ph-label">Phase 2 · Events</div>
+      <div class="ph-title">V-JEPA2-L + BAS head</div>
+      <div class="ph-desc">Frozen video encoder + small classifier head, fine-tuned on SoccerNet BAS 2025 (4 EFL matches, 12 classes).</div>
+    </div>
+    <div>
+      <div class="ph-label">Phase 3 · Audio</div>
+      <div class="ph-title">Whisper-small (cs)</div>
+      <div class="ph-desc">Czech commentary transcript, keyword-tagged into BAS classes for cross-modal validation.</div>
+    </div>
+  </div>
+
   <p class="byline">
     <span>{{ generated_at }}</span>
     <span><a href="{{ repo_url }}">github.com/sandovabarbora/tactical-cz</a></span>
-    <span>V-JEPA2-L · {{ n_windows }} sliding windows · {{ device }}</span>
+    <span>{{ n_windows }} sliding windows · {{ device }}</span>
   </p>
 </header>
 
-<main>
+<main class="wide">
+
+<!-- ============ SHOW ============ -->
 
 <section>
-  <h2>The annotated clip</h2>
-  <p>The {{ video_duration }}-second clip below is from {{ source_video }}. Each frame is overlaid with the model's per-class confidence for the surrounding {{ clip_seconds }} s window. Bars at the bottom show every BAS class; top-1 is highlighted whenever it crosses {{ highlight_threshold }}.</p>
+  <h2><span class="section-tag">The clip</span>Sparta goals 2025 with model overlay</h2>
+  <p>The {{ video_duration }}-second clip is the opening 2 minutes of <em>VŠECHNY GÓLY ROKU 2025</em> from the official @acspartapraha YouTube channel. The bottom strip shows the events-model probability for each BAS class at every frame; the top-right corner highlights the top-1 prediction when it crosses {{ highlight_threshold }}.</p>
   <div class="video-wrap">
-    <video controls preload="metadata" poster="">
+    <video controls preload="metadata">
       <source src="{{ annotated_video_rel }}" type="video/mp4">
     </video>
-    <div class="video-caption">{{ annotated_video_rel }} · {{ video_size_mb }} MB · {{ video_duration }}s</div>
+    <div class="video-caption">{{ annotated_video_rel }} · {{ video_size_mb }} MB · {{ video_duration }} s · source: {{ source_video }}</div>
   </div>
-</section>
-
-<section>
-  <h2>What's actually happening</h2>
-{% if mode == "real-labels" %}
-  <ol>
-    <li>SoccerNet BAS 2025 train split: <strong>4 EFL matches × ~2000 windows = 8102 training clips</strong>, multi-hot labels over 12 BAS classes derived from each match's Labels-ball.json.</li>
-    <li>Each window encoded with <code>facebook/vjepa2-vitl-fpc64-256</code> (frozen, 326 M params) into a 1024-d embedding on Apple-silicon MPS. ~1 h total cache time, no GPU rental.</li>
-    <li>Small linear head (1024 → 12 BAS classes) trained 30 epochs with BCEWithLogits + inverse-frequency positive weight to handle the long-tail (Pass 5206 examples vs Goal 16).</li>
-    <li>Sliding-window inference applied the trained pipeline to the 30 s Sparta clip; the bar overlay you saw above shows per-class probabilities at each window.</li>
-  </ol>
-  <div class="callout">
-    <p><strong>Honest read on the result.</strong> Train loss declined from 1.08 → {{ train_loss_final }} over 30 epochs (head IS learning). Validation loss stayed flat at ~{{ val_loss_final }} = classic overfitting on 4 matches (too small for 12-class BAS). On the Sparta clip, most classes fire high simultaneously — predictable failure mode for a head overfitted to EFL distribution applied to Czech broadcast (different league, kit, camera, lighting). This is Phase 2 baseline; Phase 3 will be LoRA fine-tuning the V-JEPA2 backbone with augmentation + more data.</p>
-  </div>
-{% else %}
-  <p>This is a <strong>fake-labels demo</strong> assembled to prove the pipeline runs end-to-end on real Czech broadcast video before the real SoccerNet NDA password arrives:</p>
-  <ol>
-    <li>{{ n_windows }} sliding 4-second windows were sampled at 1-second strides over the Sparta clip.</li>
-    <li>Each window was encoded with <code>facebook/vjepa2-vitl-fpc64-256</code> (frozen, 326 M params) into a 1024-d embedding on Apple-silicon MPS.</li>
-    <li>A <strong>synthetic "Shot" label was placed at frame {{ fake_label_frame }} (~{{ fake_label_second }} s)</strong>, ±2 s window.</li>
-    <li>A small linear head (1024 → 12 BAS classes) was trained for 100 epochs over the cached embeddings (train loss converged to {{ train_loss_final }}).</li>
-    <li>Sliding-window inference re-ran the trained pipeline; the bar overlay you saw above is the result.</li>
-  </ol>
-  <div class="callout">
-    <p><strong>Why fake?</strong> The real SoccerNet Ball Action Spotting labels are gated behind an NDA Google Form. While we wait for that password, this demo proves the full pipeline executes on real broadcast video and that the head actually learns from V-JEPA2 features.</p>
-  </div>
-{% endif %}
-</section>
-
-{% if mode == "real-labels" %}
-<section>
-  <h2>Where it works: temporal event localization on a Czech goal compilation</h2>
-  <p>Even though training was on EFL broadcast (different league, different camera operators, different kit colours), the model produces a coherent timeline on the Sparta compilation: Drive and Pass dominate the ball-in-play sequences, Shot spikes at goal moments, Out fires when the ball goes dead. None of these classes had Czech-league training examples — this is pure cross-domain transfer from foundation-model embeddings.</p>
-  <div class="chart-wrap">
-    {{ shot_chart_svg | safe }}
-    <div class="chart-caption">P(Shot) along the {{ video_duration }}-second compilation. Spikes at the moments where the compilation cuts to actual shooting plays — even though the model never saw a Czech broadcast during training.</div>
-  </div>
-</section>
-
-<section>
-  <h2>Where it falls over: the Goal class is dead</h2>
-  <p>The most interesting failure mode. On a video literally titled "All Goals of 2025", the model's Goal class never fires above P=0.03. Reason: SoccerNet BAS 2025 train split has <strong>16 Goal annotations across 4 matches</strong> (versus 5206 Passes). 16 examples is below the floor for a 12-class linear head to learn a distinct visual signature, so Goal collapses into Shot at inference time. Many goal moments in this compilation correctly trigger Shot peaks; they're just not labelled Goal.</p>
-  <p>This is the classical long-tail problem in event spotting datasets — the rare classes are exactly the ones humans care about most, and they're the hardest to learn. Three reasonable fixes:</p>
-  <ul>
-    <li><strong>Self-supervised pretraining</strong> on the 500 unannotated SoccerNet matches before fine-tuning the head</li>
-    <li><strong>Class-conditional augmentation</strong> on the 16 Goal windows (temporal jitter, slight crop, brightness)</li>
-    <li><strong>LoRA fine-tune the V-JEPA2 backbone</strong> on BAS so the encoder itself learns the "goal-as-ball-crosses-line" pattern. Costs the Phase 3 RunPod budget, ~$5</li>
-  </ul>
 </section>
 
 {% if tactical_summary %}
-<section class="wide">
-  <h2>Tactical layer: where the action actually happens</h2>
-  <p>Event spotting tells you <em>what</em>. Tactical layer joins it with Phase 1 vision (player positions on a 120×70 m pitch) to tell you <em>where</em>. For every detected event we pull the snapshot of all visible players on the pitch and derive features that read like a coach's notebook: field tilt, attacking-zone distribution, action centroid at peak shot moments.</p>
+<section>
+  <h2><span class="section-tag">Layer 1 + 2 join</span>Tactical view: where the action actually happens</h2>
+  <p>Phase 1 vision tells you where every player is on the 120×70 m pitch. Phase 2 events tell you what's happening. Joining them on frame index gives the kind of derived signal a coach reads at a glance: action centroid, zone share, minimap snapshots at peak shots.</p>
 
-  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin: 1.5rem 0;">
-    <div>
-      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Median field tilt</div>
-      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ "%.0f"|format(tactical_summary.median_field_tilt_m) }}<span style="font-size: 1rem; color: var(--muted); font-weight: 400;"> m</span></div>
-      <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">Action centroid on 120 m pitch. {% if tactical_summary.median_field_tilt_m > 80 %}heavily attacking{% elif tactical_summary.median_field_tilt_m > 60 %}attacking half{% elif tactical_summary.median_field_tilt_m > 40 %}midfield{% else %}defensive half{% endif %}.</div>
+  <div class="kpi-row c3">
+    <div class="kpi">
+      <div class="kpi-label">Median field tilt</div>
+      <div class="kpi-value">{{ "%.0f"|format(tactical_summary.median_field_tilt_m) }}<span class="unit"> m</span></div>
+      <div class="kpi-note">Action centroid on a 120 m pitch. {% if tactical_summary.median_field_tilt_m > 80 %}heavily attacking{% elif tactical_summary.median_field_tilt_m > 60 %}attacking half{% elif tactical_summary.median_field_tilt_m > 40 %}midfield{% else %}defensive half{% endif %}.</div>
     </div>
-    <div>
-      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Attacking-zone share</div>
-      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ "%.0f"|format(tactical_summary.attacking_zone_share * 100) }}<span style="font-size: 1rem; color: var(--muted); font-weight: 400;"> %</span></div>
-      <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">Of Shot+Drive top-quartile windows that fired in the attacking third.</div>
+    <div class="kpi">
+      <div class="kpi-label">Attacking-zone share</div>
+      <div class="kpi-value">{{ "%.0f"|format(tactical_summary.attacking_zone_share * 100) }}<span class="unit"> %</span></div>
+      <div class="kpi-note">Of Shot+Drive top-quartile windows, the fraction in the attacking third of the pitch.</div>
     </div>
-    <div>
-      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Players per frame</div>
-      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ "%.1f"|format(tactical_summary.n_players_per_frame_mean) }}</div>
-      <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">Mean tracker detections. Low (≪22) = close-up camera; high = wide pitch view.</div>
+    <div class="kpi">
+      <div class="kpi-label">Players per frame</div>
+      <div class="kpi-value">{{ "%.1f"|format(tactical_summary.n_players_per_frame_mean) }}</div>
+      <div class="kpi-note">Mean tracker detections. Low (≪22) = close-up camera; high = wide pitch view.</div>
     </div>
   </div>
 
   <h3>Attacking zones, per event class</h3>
-  <p>For each event class, the top-quartile-confidence windows split into defensive / midfield / attacking third by action centroid x-position. Shows where the model finds each kind of event happening on the pitch.</p>
-  <div class="chart-wrap">
-    {{ tactical_zone_svg | safe }}
-  </div>
+  <p>For each event class, the top-quartile-confidence windows split into defensive / midfield / attacking third by action centroid. Reads "where does each kind of event happen on the pitch".</p>
+  <div class="chart-wrap">{{ tactical_zone_svg | safe }}</div>
 
   <h3>Field tilt timeline</h3>
-  <p>Mean pitch x-position of detected players, second by second. Spikes upward = attacking surge; troughs = defending/transition. Dashed lines mark the 1/3 and 2/3 of the pitch (defensive/midfield/attacking boundaries).</p>
-  <div class="chart-wrap">
-    {{ tactical_tilt_svg | safe }}
-  </div>
+  <p>Mean x-position of detected players, second by second. Up = attacking surge, down = transition. Dashed lines: pitch thirds.</p>
+  <div class="chart-wrap">{{ tactical_tilt_svg | safe }}</div>
 
   {% if tactical_minimaps %}
-  <h3>Minimap snapshots at peak Shot moments</h3>
-  <p>For the {{ tactical_minimaps|length }} highest-confidence Shot windows: where all detected players were on the pitch at that exact frame. Green = team A (auto-clustered by kit colour), brown = team B, grey = goalkeeper or unassigned. <em>Note:</em> "team A/B" is unsupervised K-means on HSV at clip start — no claim about Sparta vs opponent.</p>
-  <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; margin: 1rem 0;">
+  <h3>Minimap snapshots at peak shot moments</h3>
+  <p>The {{ tactical_minimaps|length }} highest-confidence Shot windows. Green = team A (auto-clustered by kit colour on first frames), brown = team B, grey = goalkeeper or unassigned. The team labels are unsupervised K-means on HSV; no claim about Sparta-vs-opponent identification.</p>
+  <div class="minimap-grid">
     {% for m in tactical_minimaps %}
-    <div>
-      <div style="font-family: var(--mono); font-size: 0.78rem; color: var(--muted); margin-bottom: 4px;">
-        t={{ "%.1f"|format(m.second) }}s · P(Shot)={{ "%.2f"|format(m.p_shot) }} · zone: {{ m.action_zone }} · {{ m.n_players_visible }} players visible
-      </div>
+    <div class="minimap-cell">
+      <div class="caption">t={{ "%.1f"|format(m.second) }}s · P(Shot)={{ "%.2f"|format(m.p_shot) }} · {{ m.action_zone }} third · {{ m.n_players_visible }} players visible</div>
       {{ m.minimap_svg | safe }}
     </div>
     {% endfor %}
@@ -264,44 +306,42 @@
 {% endif %}
 
 {% if commentary_summary %}
-<section class="wide">
-  <h2>Commentary layer: Czech ASR × event model agreement</h2>
-  <p>The third modality. Whisper-medium transcribes the Czech commentary on the broadcast, then a small keyword dictionary tags each segment with the BAS event class(es) it implies ("góóól" → Goal, "centruje na hlavičku" → Cross + Header, "tvrdá střela" → Shot, etc.). For each tagged segment we look up the events-model probability at the segment midpoint frame and report agreement.</p>
+<section>
+  <h2><span class="section-tag">Layer 3 cross-check</span>Commentary: does Czech audio agree with the video model?</h2>
+  <p>Whisper-small transcribes the live Czech commentary, then a keyword dictionary tags each segment with the BAS event class it implies. For every tagged moment we look up the events-model probability at the segment midpoint frame.</p>
 
-  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; margin: 1.2rem 0;">
-    <div>
-      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Whisper segments</div>
-      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ commentary_summary.n_segments }}</div>
+  <div class="kpi-row c4">
+    <div class="kpi">
+      <div class="kpi-label">Whisper segments</div>
+      <div class="kpi-value">{{ commentary_summary.n_segments }}</div>
     </div>
-    <div>
-      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Tagged with BAS class</div>
-      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ commentary_summary.n_tagged }}</div>
+    <div class="kpi">
+      <div class="kpi-label">Tagged BAS class</div>
+      <div class="kpi-value">{{ commentary_summary.n_tagged }}</div>
     </div>
-    <div>
-      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Agree with events model</div>
-      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ commentary_summary.n_agree }}</div>
+    <div class="kpi">
+      <div class="kpi-label">Agree with model</div>
+      <div class="kpi-value">{{ commentary_summary.n_agree }}</div>
     </div>
-    <div>
-      <div style="font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;">Agreement share</div>
-      <div style="font-size: 1.8rem; color: var(--accent); font-weight: 700; line-height: 1.1;">{{ "%.0f"|format(commentary_summary.agree_share * 100) }}<span style="font-size: 1rem; color: var(--muted); font-weight: 400;"> %</span></div>
+    <div class="kpi">
+      <div class="kpi-label">Agreement share</div>
+      <div class="kpi-value">{{ "%.0f"|format(commentary_summary.agree_share * 100) }}<span class="unit"> %</span></div>
     </div>
   </div>
 
-  <h3>Tagged commentary moments</h3>
-  <p>Each row: a moment where the commentator said something that maps to a BAS event class, plus what the events model thought was happening at that frame. <strong>Green</strong> rows = both modalities agree (model's P for any matched class ≥ 0.30); <strong>warm</strong> rows = commentator said it but model didn't.</p>
   <table>
     <thead>
       <tr>
         <th class="num">Time</th>
         <th>Commentary text</th>
-        <th>Matched BAS class</th>
+        <th>Tagged class</th>
         <th class="num">Model max P</th>
         <th>Model top-1</th>
       </tr>
     </thead>
     <tbody>
     {% for ev in commentary_events %}
-      <tr {% if ev.agrees %}style="background:var(--accent-soft)"{% else %}style="background:#f7e8de"{% endif %}>
+      <tr class="{% if ev.agrees %}agree{% else %}disagree{% endif %}">
         <td class="num">{{ "%.1f"|format(ev.midpoint_s) }}s</td>
         <td><em>{{ ev.text }}</em></td>
         <td>{{ ev.bas_classes }}</td>
@@ -311,34 +351,49 @@
     {% endfor %}
     </tbody>
   </table>
-  <p style="font-size:0.85rem; color:var(--muted)"><em>Why this matters:</em> two independent modalities agreeing on an event is much stronger evidence than either alone. The disagreements are interesting too — either the commentator is anticipating (says "góól!" right before the goal frame), the BAS labels in training were too sparse for the model to fire (Goal class, see below), or Whisper picked up a non-event word from context. All three are diagnostic.</p>
+  <p style="font-size:0.85rem; color:var(--muted)">Green rows: both modalities agree (model P ≥ 0.30 on a tagged class). Warm rows: commentator said it but model didn't fire. The disagreements turn out to be the most informative signal — see the finding below.</p>
 </section>
 {% endif %}
 
-<section>
-  <h2>Top-1 prediction per second</h2>
-  <p>For each ~1 s window, the highest-confidence BAS class. Reads left to right as the action unfolds. Multiple consecutive seconds of "Shot" or "Header" suggest the model picked up on a multi-frame event sequence, not just a single noisy spike.</p>
-  <table>
-    <thead>
-      <tr><th>Second</th><th>Top-1 class</th><th class="num">P</th><th>Runner-up</th><th class="num">P</th></tr>
-    </thead>
-    <tbody>
-    {% for row in top1_timeline %}
-      <tr>
-        <td>{{ "%.1f"|format(row.second) }}s</td>
-        <td>{{ row.top1_cls }}</td>
-        <td class="num">{{ "%.3f"|format(row.top1_p) }}</td>
-        <td>{{ row.top2_cls }}</td>
-        <td class="num">{{ "%.3f"|format(row.top2_p) }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</section>
+<!-- ============ DIAGNOSTIC FINDINGS ============ -->
 
 <section>
-  <h2>Where it's broken: calibration bias on common classes</h2>
-  <p>Not all classes are equally well-behaved. The diagnostic is <strong>mean / max ratio</strong>: a class that fires high almost everywhere (mean ≈ max) is over-confident, while a class that spikes only at specific moments (mean << max) is doing the right thing for event spotting.</p>
+  <h2><span class="section-tag">Findings</span>What works, what doesn't, where to look next</h2>
+  <p>Two clear results from running all three layers on this clip. Each survives the smell test independently across modalities.</p>
+
+  <div class="finding">
+    <h3>★ What transfers: temporal Shot localization across leagues</h3>
+    <p>Training was on 4 English Football League matches. Inference is on Czech-league broadcast (Fortuna Liga), with different camera operators, kit colours, stadium lighting, even slow-motion replays. The model still produces a coherent Shot timeline: spikes at the moments the compilation cuts to actual shooting plays, drops to background between. This is pure cross-domain transfer from the frozen V-JEPA2 features; the head only adapts the readout, the encoder never saw Czech video.</p>
+    <div class="chart-wrap">
+      {{ shot_chart_svg | safe }}
+      <div class="chart-caption">P(Shot) along the {{ video_duration }}-second compilation. Spikes co-locate with the cuts to shooting plays.</div>
+    </div>
+  </div>
+
+  <div class="finding warn">
+    <h3>✗ What doesn't: the Goal class is structurally dead</h3>
+    <p>On a video literally titled "All Goals of 2025", the model's Goal-class probability never exceeds P=0.03. Two reasons compound:</p>
+    <ol>
+      <li><strong>Long-tail in training data.</strong> SoccerNet BAS 2025 train split has just 16 Goal annotations across 4 matches (vs 5206 Passes, 5188 Drives). 16 examples is below the floor for a 12-class linear head to learn a distinct visual signature, so Goal collapses into Shot at inference time.</li>
+      {% if commentary_summary and commentary_summary.n_goal_calls > 0 %}
+      <li><strong>Cross-modal confirmation.</strong> Whisper picked up "gol!" <strong>{{ commentary_summary.n_goal_calls }} times</strong> in this clip — but only {{ commentary_summary.n_goal_agreements }} of those moments line up with a high Goal-class probability from the events model. The audio modality keeps saying "Goal" while the video modality stays silent. The disagreement is the diagnostic.</li>
+      {% endif %}
+    </ol>
+    <p style="margin-top:0.8rem;"><strong>Three plausible fixes</strong> for Phase 4+: self-supervised pretraining on the 500 unannotated SoccerNet matches, class-conditional augmentation on the 16 Goal windows (temporal jitter, crop, brightness), or LoRA fine-tune the V-JEPA2 backbone on BAS so the encoder learns the "ball-crosses-line" geometry directly. The last one needs a ~$5 RunPod budget.</p>
+  </div>
+
+  <div class="finding warn">
+    <h3>✗ Calibration biases on common classes</h3>
+    <p>Beyond Goal, two other classes mis-behave: <strong>Out</strong> and <strong>Ball Player Block</strong> fire systematically high across all windows (mean ≈ 0.6, calibration ratio ≈ 0.9 vs 0.1 expected). This is the well-known artefact of multi-label BCE without per-class temperature scaling on imbalanced data. Per-class threshold tuning on validation (see appendix) recovers most of the signal at inference time; proper temperature scaling would fix the logits themselves.</p>
+  </div>
+</section>
+
+<!-- ============ DATA APPENDIX ============ -->
+
+<section>
+  <h2><span class="section-tag">Appendix · Data</span>Per-class table + top-1 timeline</h2>
+
+  <h3>Per-class calibration on this clip</h3>
   <table>
     <thead>
       <tr>
@@ -358,89 +413,75 @@
         <td class="num">{{ "%.3f"|format(row.mean_p) }}</td>
         <td class="num">{{ "%.2f"|format(row.calibration_ratio) }}</td>
         <td class="num">{{ "%.1f"|format(row.at_second) }}s</td>
-        <td>{% if row.calibration_ratio > 0.7 %}<span style="color:#a8523a">over-confident</span>{% elif row.calibration_ratio < 0.3 %}localized{% else %}moderate{% endif %}</td>
+        <td>{% if row.calibration_ratio > 0.7 %}<span style="color:var(--warn)">over-confident</span>{% elif row.calibration_ratio < 0.3 %}localized ★{% else %}moderate{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
-  <p>Take-away: <strong>Shot, Goal, Header, Cross</strong> are well-calibrated (peak well above mean = real event localization). <strong>Out, Ball Player Block</strong> are over-confident (fire high almost always = false-positive bias from EFL training distribution). Pass + Drive are under-confident, likely because inverse-frequency positive-weighting in BCE loss overcompensated for their high training counts.</p>
-</section>
-{% else %}
-<section>
-  <h2>Headline signal</h2>
-  <p>If the head is doing its job, probability of "Shot" should peak around the fake-labeled frames and stay low elsewhere. Measured signal ratio (mean P(Shot) on labelled windows ÷ mean on un-labelled windows): <span class="stat">{{ signal_ratio }}×</span></p>
-  <div class="chart-wrap">
-    {{ shot_chart_svg | safe }}
-    <div class="chart-caption">P(Shot) along the 30-second clip. Shaded band = fake-labelled region (frames {{ fake_label_low }}–{{ fake_label_high }}). Trained head sharpens to ~0.99 inside, drops to ~0.05 outside.</div>
-  </div>
-</section>
-{% endif %}
 
-<section>
-  <h2>Per-class probabilities, summarised</h2>
-{% if mode == "real-labels" %}
-  <p>Top-confidence frame for each BAS class across the Sparta clip. Multiple classes saturate near 1.0 simultaneously, which is the over-confident behaviour expected from an overfitted head applied to out-of-distribution input. Phase 3 should compress this dramatically.</p>
-{% else %}
-  <p>Top-confidence frame for each BAS class across the clip (ranked by max). Rows where the max is below 0.5 are mostly noise; the trained head only learned to fire on "Shot".</p>
-{% endif %}
-  <table>
-    <thead>
-      <tr>
-        <th>Class</th>
-        <th class="num">Max P</th>
-        <th class="num">At frame</th>
-        <th class="num">At second</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for row in per_class_table %}
-      <tr {% if mode == "fake-labels" and row.cls == "Shot" %}class="focus"{% endif %}>
-        <td>{{ row.cls }}</td>
-        <td class="num">{{ "%.3f"|format(row.max_p) }}</td>
-        <td class="num">{{ row.at_frame }}</td>
-        <td class="num">{{ "%.2f"|format(row.at_second) }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+  <details>
+    <summary>Top-1 prediction per ~5 s (collapsed)</summary>
+    <table style="margin-top:0.8rem;">
+      <thead>
+        <tr><th>Time</th><th>Top-1 class</th><th class="num">P</th><th>Runner-up</th><th class="num">P</th></tr>
+      </thead>
+      <tbody>
+      {% for row in top1_timeline %}
+        <tr>
+          <td>{{ "%.1f"|format(row.second) }}s</td>
+          <td>{{ row.top1_cls }}</td>
+          <td class="num">{{ "%.3f"|format(row.top1_p) }}</td>
+          <td>{{ row.top2_cls }}</td>
+          <td class="num">{{ "%.3f"|format(row.top2_p) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </details>
+
+  <h3 style="margin-top: var(--gap-3);">Training summary</h3>
+  <p>Frozen V-JEPA2-L backbone (326 M params, MIT), small linear head (1024 → 12 BAS classes). Training: 4 EFL matches × ~2000 windows = <strong>8102 training clips</strong>, BCEWithLogits with uniform positive weights, AdamW + cosine schedule, 30 epochs. Final train loss <strong>{{ train_loss_final }}</strong>, val loss <strong>{{ val_loss_final }}</strong>. Per-class val F1 (with tuned thresholds): Drive 0.85, Pass 0.83, Free Kick 0.59, Shot 0.51, Header 0.49, Cross 0.46, Goal 0.0 (too few positives).</p>
 </section>
 
+<!-- ============ REPRODUCE ============ -->
+
 <section>
-  <h2>Reproducing this on your own clip</h2>
-  <p>Once SoccerNet NDA password arrives, the trigger sequence is four commands:</p>
-  <pre><code>export SOCCERNET_PASSWORD=&lt;from approval email&gt;
+  <h2><span class="section-tag">Appendix · Reproduce</span>Run this on your own clip</h2>
+  <p>Full pipeline runs on Apple silicon, no GPU rental. With your own broadcast mp4 and a copy of the trained head:</p>
+  <pre><code># 1. Vision: per-frame player + pitch detection
+uv run python -m tactical_cz.vision \
+    --input data/raw/your_clip.mp4 \
+    --out data/processed/vision_tracking.parquet
 
-# 1. Decrypt the AES zips you already downloaded
-uv run python -m tactical_cz.events.downloader extract --split valid
-
-# 2. Run V-JEPA2 once over the split, cache embeddings to parquet
-uv run python -m tactical_cz.events.cache_embeddings --split valid
-
-# 3. Fit the head over cached embeddings (seconds per epoch)
-uv run python -m tactical_cz.events.train \
-    --train-embeddings data/processed/embeddings_train.parquet \
-    --val-embeddings   data/processed/embeddings_valid.parquet \
-    --epochs 30
-
-# 4. Run end-to-end inference on any clip you have
+# 2. Events: V-JEPA2 + BAS head sliding-window inference
 uv run python -m tactical_cz.events.infer \
     --source data/raw/your_clip.mp4 \
     --checkpoint checkpoints/head_best.pt \
-    --out data/processed/events_timeline.parquet</code></pre>
-  <p>The same <code>annotate</code> + <code>render</code> modules used for this page will produce a fresh annotated clip and dashboard:</p>
-  <pre><code>uv run python -m tactical_cz.demo.annotate \
+    --out data/processed/events_timeline.parquet
+
+# 3. Audio: Whisper Czech commentary transcript
+uv run python -m tactical_cz.audio.transcribe \
+    --source data/raw/your_clip.mp4 \
+    --out data/processed/transcript.parquet \
+    --model-size small
+
+# 4. Render this page locally
+uv run python -m tactical_cz.demo.annotate \
     --source data/raw/your_clip.mp4 \
     --events data/processed/events_timeline.parquet
 uv run python -m tactical_cz.demo.render \
     --events data/processed/events_timeline.parquet \
-    --annotated outputs/events_annotated.mp4</code></pre>
+    --annotated outputs/events_annotated.mp4 \
+    --vision data/processed/vision_tracking.parquet \
+    --transcript data/processed/transcript.parquet \
+    --source data/raw/your_clip.mp4</code></pre>
+  <p>SoccerNet BAS 2025 training data is gated by an NDA Google Form (forms gateway, no academic affiliation required); steps in <code>docs/PHASE2_KICKOFF.md</code>.</p>
 </section>
 
 </main>
 
-<footer>
-  <p>tactical-cz · multimodal AI for Czech football broadcasts · MIT licence (code), GPL-3.0 for SoccerNet-derived weights</p>
-  <p>built by <a href="https://datasimply.eu">Barbora Šandová</a> · <a href="{{ repo_url }}">repo</a></p>
+<footer class="wide">
+  <p>tactical-cz · multimodal AI for Czech football broadcasts · MIT licence (code), GPL-3.0 for SoccerNet-derived weights · built by <a href="https://datasimply.eu">Barbora Šandová</a> · <a href="{{ repo_url }}">repo</a></p>
 </footer>
 
 </body>

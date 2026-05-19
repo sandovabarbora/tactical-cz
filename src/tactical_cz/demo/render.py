@@ -257,11 +257,17 @@ def render_demo(cfg: RenderConfig) -> Path:
             for e in events_at
         ]
         n_agree = sum(1 for e in events_at if e.agrees)
+        n_goal_calls = sum(1 for e in events_at if "Goal" in e.bas_classes)
+        n_goal_agreements = sum(
+            1 for e in events_at if "Goal" in e.bas_classes and e.agrees
+        )
         commentary_summary = {
             "n_segments": int(len(transcript)),
             "n_tagged": int(len(events_at)),
             "n_agree": int(n_agree),
             "agree_share": n_agree / max(len(events_at), 1),
+            "n_goal_calls": int(n_goal_calls),
+            "n_goal_agreements": int(n_goal_agreements),
         }
         logger.info(
             "Commentary layer: %d segments, %d tagged, %d agree with events model",
