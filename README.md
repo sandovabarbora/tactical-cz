@@ -22,7 +22,7 @@ short_description: Multimodální AI analýza českého fotbalu — Q&A nad pipe
 | | URL | Co to ukazuje |
 |---|---|---|
 | 📊 Static report | https://sandovabarbora.github.io/tactical-cz/ | Annotated mp4 + 4-vrstvý pipeline analysis + diagnostické findings + pre-computed Q&A |
-| 💬 Interactive Q&A | (HF Space link po deploy) | Ptej se na konkrétní moment v Sparta-goals klipu, Czech default |
+| 💬 Interactive Q&A | https://huggingface.co/spaces/sandovabarb/tactical-cz | Ptej se na konkrétní moment v Sparta vs Viking 2022 Conference League klipu, Czech default |
 
 ---
 
