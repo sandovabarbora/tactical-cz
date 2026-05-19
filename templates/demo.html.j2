@@ -154,7 +154,7 @@
 
 <section>
   <h2>The annotated clip</h2>
-  <p>The 30-second clip below is from {{ source_video }}. Each frame is overlaid with the model's per-class confidence for the surrounding {{ clip_seconds }} s window. Bars at the bottom show every BAS class; top-1 is highlighted whenever it crosses {{ highlight_threshold }}.</p>
+  <p>The {{ video_duration }}-second clip below is from {{ source_video }}. Each frame is overlaid with the model's per-class confidence for the surrounding {{ clip_seconds }} s window. Bars at the bottom show every BAS class; top-1 is highlighted whenever it crosses {{ highlight_threshold }}.</p>
   <div class="video-wrap">
     <video controls preload="metadata" poster="">
       <source src="{{ annotated_video_rel }}" type="video/mp4">
@@ -192,12 +192,23 @@
 
 {% if mode == "real-labels" %}
 <section>
-  <h2>Where it works: temporal Shot localization</h2>
-  <p>This was the surprise. Looking at top-1 prediction per second on the Sparta clip, Shot doesn't fire uniformly — it spikes in two distinct clusters (around 8-12 s and 18-21 s), drops to background everywhere else. If you watch the clip, those moments should correspond to actual shot attempts. That's real cross-domain transfer (EFL training → Czech inference) on a 4-match training set.</p>
+  <h2>Where it works: temporal event localization on a Czech goal compilation</h2>
+  <p>Even though training was on EFL broadcast (different league, different camera operators, different kit colours), the model produces a coherent timeline on the Sparta compilation: Drive and Pass dominate the ball-in-play sequences, Shot spikes at goal moments, Out fires when the ball goes dead. None of these classes had Czech-league training examples — this is pure cross-domain transfer from foundation-model embeddings.</p>
   <div class="chart-wrap">
     {{ shot_chart_svg | safe }}
-    <div class="chart-caption">P(Shot) along the 30-second Sparta clip. Two clear peaks where the model believes a shot is happening, low signal elsewhere. Goal class (not shown) similarly stays low except one brief moment — the right calibration for a 30 s highlight.</div>
+    <div class="chart-caption">P(Shot) along the {{ video_duration }}-second compilation. Spikes at the moments where the compilation cuts to actual shooting plays — even though the model never saw a Czech broadcast during training.</div>
   </div>
+</section>
+
+<section>
+  <h2>Where it falls over: the Goal class is dead</h2>
+  <p>The most interesting failure mode. On a video literally titled "All Goals of 2025", the model's Goal class never fires above P=0.03. Reason: SoccerNet BAS 2025 train split has <strong>16 Goal annotations across 4 matches</strong> (versus 5206 Passes). 16 examples is below the floor for a 12-class linear head to learn a distinct visual signature, so Goal collapses into Shot at inference time. Many goal moments in this compilation correctly trigger Shot peaks; they're just not labelled Goal.</p>
+  <p>This is the classical long-tail problem in event spotting datasets — the rare classes are exactly the ones humans care about most, and they're the hardest to learn. Three reasonable fixes:</p>
+  <ul>
+    <li><strong>Self-supervised pretraining</strong> on the 500 unannotated SoccerNet matches before fine-tuning the head</li>
+    <li><strong>Class-conditional augmentation</strong> on the 16 Goal windows (temporal jitter, slight crop, brightness)</li>
+    <li><strong>LoRA fine-tune the V-JEPA2 backbone</strong> on BAS so the encoder itself learns the "goal-as-ball-crosses-line" pattern. Costs the Phase 3 RunPod budget, ~$5</li>
+  </ul>
 </section>
 
 <section>

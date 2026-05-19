@@ -52,13 +52,15 @@ class RenderConfig:
     annotated_video: Path
     source_video: Path
     out_html: Path
-    title: str = "Phase 2 baseline: V-JEPA2-L + BAS head on a Sparta broadcast clip"
+    title: str = "Phase 2 baseline: V-JEPA2-L + BAS head on a Sparta goal compilation"
     lede: str = (
         "Frozen V-JEPA2-L (Meta, MIT-licensed) encoder, small linear head "
         "trained on 4 EFL matches from SoccerNet Ball Action Spotting 2025 "
-        "(~8K windows, 12 event classes), evaluated on a 30 s Sparta highlight "
-        "completely out-of-distribution. Honest baseline showing both what the "
-        "pipeline does and where it breaks."
+        "(~8K windows, 12 event classes), evaluated on a 2-minute Sparta "
+        "all-goals-of-2025 compilation from the official @acspartapraha "
+        "channel. Out-of-distribution evaluation: Czech league + multi-match "
+        "splice + different camera operators. Honest baseline showing what "
+        "transfers, what doesn't, and why."
     )
     repo_url: str = "https://github.com/sandovabarbora/tactical-cz"
     fake_label_frame: int = 350
@@ -143,10 +145,15 @@ def _per_class_table(df: pd.DataFrame) -> list[dict]:
     return sorted(rows, key=lambda r: -r["max_p"])
 
 
-def _top1_timeline(df: pd.DataFrame) -> list[dict]:
-    """Top-1 class + runner-up per window (sorted by frame). The real
-    signal: does the model localize events to specific moments?"""
+def _top1_timeline(df: pd.DataFrame, max_rows: int = 30) -> list[dict]:
+    """Top-1 class + runner-up per window. For long clips (>30 windows),
+    sub-sample uniformly so the table stays readable. The real signal:
+    does the model localize events to specific moments?"""
     piv = df.pivot_table(index="frame_idx", columns="event_type", values="confidence")
+    if len(piv) > max_rows:
+        # Uniform stride sampling — keeps temporal coverage across the clip
+        stride = len(piv) // max_rows
+        piv = piv.iloc[::stride].head(max_rows)
     rows = []
     for f in piv.index:
         sorted_classes = piv.loc[f].sort_values(ascending=False)
