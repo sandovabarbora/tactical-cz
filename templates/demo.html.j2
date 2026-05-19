@@ -253,15 +253,24 @@
     <span><a href="{{ repo_url }}">github.com/sandovabarbora/tactical-cz</a></span>
     <span>{{ n_windows }} sliding windows · {{ device }}</span>
   </p>
+
+  <nav style="margin-top: var(--gap-2); padding-top: var(--gap-2); border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.78rem; color: var(--muted); display: flex; gap: 1rem; flex-wrap: wrap;">
+    <a href="#clip" style="color: var(--accent); text-decoration:none;">1 The clip</a>
+    {% if tactical_summary %}<a href="#tactical" style="color: var(--accent); text-decoration:none;">2 Tactical view</a>{% endif %}
+    {% if commentary_summary %}<a href="#commentary" style="color: var(--accent); text-decoration:none;">3 Commentary</a>{% endif %}
+    {% if agent_qa %}<a href="#agent" style="color: var(--accent); text-decoration:none;">4 Ask the pipeline</a>{% endif %}
+    <a href="#findings" style="color: var(--accent); text-decoration:none;">5 Findings</a>
+    <a href="#appendix" style="color: var(--accent); text-decoration:none;">6 Appendix</a>
+  </nav>
 </header>
 
 <main class="wide">
 
 <!-- ============ SHOW ============ -->
 
-<section>
-  <h2><span class="section-tag">The clip</span>Sparta goals 2025 with model overlay</h2>
-  <p>The {{ video_duration }}-second clip is the opening 2 minutes of <em>VŠECHNY GÓLY ROKU 2025</em> from the official @acspartapraha YouTube channel. The bottom strip shows the events-model probability for each BAS class at every frame; the top-right corner highlights the top-1 prediction when it crosses {{ highlight_threshold }}.</p>
+<section id="clip">
+  <h2><span class="section-tag">1 · The clip</span>Sparta goals 2025 with model overlay</h2>
+  <p>The {{ video_duration }}-second clip is the opening 2 minutes of <em>VŠECHNY GÓLY ROKU 2025</em> from the official @acspartapraha YouTube channel. The top-right panel shows the events-model's <strong>top-3 predictions</strong> for the current frame's 4-second window — <em>"MODEL SEES:"</em> framing makes clear these are predictions, not ground truth (and when the model is wrong, you can see it disagree with the action on screen). The bottom-right chip shows overall confidence in the top-1 prediction.</p>
   <div class="video-wrap">
     <video controls preload="metadata">
       <source src="{{ annotated_video_rel }}" type="video/mp4">
@@ -271,8 +280,8 @@
 </section>
 
 {% if tactical_summary %}
-<section>
-  <h2><span class="section-tag">Layer 1 + 2 join</span>Tactical view: where the action actually happens</h2>
+<section id="tactical">
+  <h2><span class="section-tag">2 · Vision × Events</span>Tactical view: where the action actually happens</h2>
   <p>Phase 1 vision tells you where every player is on the 120×70 m pitch. Phase 2 events tell you what's happening. Joining them on frame index gives the kind of derived signal a coach reads at a glance: action centroid, zone share, minimap snapshots at peak shots.</p>
 
   <div class="kpi-row c3">
@@ -317,8 +326,8 @@
 {% endif %}
 
 {% if commentary_summary %}
-<section>
-  <h2><span class="section-tag">Layer 3 cross-check</span>Commentary: does Czech audio agree with the video model?</h2>
+<section id="commentary">
+  <h2><span class="section-tag">3 · Audio × Events</span>Commentary: does Czech audio agree with the video model?</h2>
   <p>Whisper-small transcribes the live Czech commentary, then a keyword dictionary tags each segment with the BAS event class it implies. For every tagged moment we look up the events-model probability at the segment midpoint frame.</p>
 
   <div class="kpi-row c4">
@@ -368,8 +377,8 @@
 
 {% if agent_qa %}
 <!-- ============ AGENT LAYER ============ -->
-<section>
-  <h2><span class="section-tag">Layer 4 · Natural language</span>Ask the pipeline (Claude Sonnet 4.6)</h2>
+<section id="agent">
+  <h2><span class="section-tag">4 · Ask the pipeline</span>Natural language Q&amp;A (Claude Sonnet 4.6)</h2>
   <p>The three modalities produce derived parquets — readable, but dense. The agent layer wraps them into a context window for an LLM, which then answers questions in plain language with citations back to the data. Below: five pre-computed questions in Czech and the model's answers. The agent has no access to raw video or audio, only the events / tactical / commentary summaries.</p>
   <div style="display: flex; flex-direction: column; gap: 1rem; margin: var(--gap-3) 0;">
   {% for qa in agent_qa %}
@@ -389,8 +398,8 @@
 
 <!-- ============ DIAGNOSTIC FINDINGS ============ -->
 
-<section>
-  <h2><span class="section-tag">Findings</span>What works, what doesn't, where to look next</h2>
+<section id="findings">
+  <h2><span class="section-tag">5 · Findings</span>What works, what doesn't, where to look next</h2>
   <p>Two clear results from running all three layers on this clip. Each survives the smell test independently across modalities.</p>
 
   <div class="finding">
@@ -422,8 +431,8 @@
 
 <!-- ============ DATA APPENDIX ============ -->
 
-<section>
-  <h2><span class="section-tag">Appendix · Data</span>Per-class table + top-1 timeline</h2>
+<section id="appendix">
+  <h2><span class="section-tag">6 · Appendix · Data</span>Per-class table + top-1 timeline</h2>
 
   <h3>Per-class calibration on this clip</h3>
   <table>
@@ -478,7 +487,7 @@
 <!-- ============ REPRODUCE ============ -->
 
 <section>
-  <h2><span class="section-tag">Appendix · Reproduce</span>Run this on your own clip</h2>
+  <h2><span class="section-tag">6 · Appendix · Reproduce</span>Run this on your own clip</h2>
   <p>Full pipeline runs on Apple silicon, no GPU rental. With your own broadcast mp4 and a copy of the trained head:</p>
   <pre><code># 1. Vision: per-frame player + pitch detection
 uv run python -m tactical_cz.vision \
