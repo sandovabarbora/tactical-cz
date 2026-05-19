@@ -37,16 +37,23 @@ logger = logging.getLogger(__name__)
 # Paths relative to repo root — committed to demo_data/ so both local
 # and HF Spaces runtimes find the parquets without needing the full
 # data/processed/ pipeline cache (which is gitignored).
+#
+# The "hero" clip is now the first 15 minutes of AC Sparta Praha vs
+# Viking Stavanger (Conference League qualifier, 21.7.2022). Continuous
+# real-broadcast play is more useful for tactical-tool demonstration
+# than the previous goals compilation, even though it doesn't have the
+# dramatic Goal-class-dead failure mode the comp had.
 REPO = Path(__file__).resolve().parent
-EVENTS = REPO / "demo_data" / "events_timeline_goals.parquet"
-VISION = REPO / "demo_data" / "vision_tracking_goals.parquet"
-TRANSCRIPT = REPO / "demo_data" / "transcript_goals.parquet"
+EVENTS = REPO / "demo_data" / "events_timeline_sparta_viking_2022_15min.parquet"
+VISION = REPO / "demo_data" / "vision_tracking_sparta_viking_2022_15min.parquet"
+TRANSCRIPT = REPO / "demo_data" / "transcript_sparta_viking_2022_15min.parquet"
 
-# The 37 MB annotated mp4 lives on GitHub Pages (HF Space free tier
-# blocks files >10 MB without git-lfs). Local dev still finds the file
-# in docs/ first; falls back to the GitHub Pages URL on deployment.
-ANNOTATED_VIDEO_LOCAL = REPO / "docs" / "sparta_goals_annotated.mp4"
-ANNOTATED_VIDEO_URL = "https://sandovabarbora.github.io/tactical-cz/sparta_goals_annotated.mp4"
+# Annotated mp4 is 52 MB at 480p / CRF 30 — fits under GitHub Pages limit.
+# Local dev still finds the file in docs/ first; falls back to the
+# GitHub Pages URL when deployed (HF Space free tier blocks files >10 MB
+# without git-lfs, so we serve from GH Pages).
+ANNOTATED_VIDEO_LOCAL = REPO / "docs" / "sparta_viking_annotated.mp4"
+ANNOTATED_VIDEO_URL = "https://sandovabarbora.github.io/tactical-cz/sparta_viking_annotated.mp4"
 ANNOTATED_VIDEO = (
     str(ANNOTATED_VIDEO_LOCAL) if ANNOTATED_VIDEO_LOCAL.exists()
     else ANNOTATED_VIDEO_URL

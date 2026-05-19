@@ -269,8 +269,8 @@
 <!-- ============ SHOW ============ -->
 
 <section id="clip">
-  <h2><span class="section-tag">1 · The clip</span>Sparta goals 2025 with model overlay</h2>
-  <p>The {{ video_duration }}-second clip is the opening 2 minutes of <em>VŠECHNY GÓLY ROKU 2025</em> from the official @acspartapraha YouTube channel. The top-right panel shows the events-model's <strong>top-3 predictions</strong> for the current frame's 4-second window — <em>"MODEL SEES:"</em> framing makes clear these are predictions, not ground truth (and when the model is wrong, you can see it disagree with the action on screen). The bottom-right chip shows overall confidence in the top-1 prediction.</p>
+  <h2><span class="section-tag">1 · The clip</span>15 min of AC Sparta vs Viking, Conference League 2022</h2>
+  <p>The {{ video_duration }}-second window is from the first half of <em>AC Sparta Praha vs Viking Stavanger</em>, UEFA Conference League qualifier, 21 July 2022. Continuous real broadcast — no cuts, no replays, no edits. The top-right panel shows the events-model's <strong>top-3 predictions</strong> for the current frame's 4-second window — <em>"MODEL SEES:"</em> framing makes clear these are predictions, not ground truth. The bottom-right chip shows overall confidence in the top-1 prediction.</p>
   <div class="video-wrap">
     <video controls preload="metadata">
       <source src="{{ annotated_video_rel }}" type="video/mp4">
@@ -403,24 +403,24 @@
   <p>Two clear results from running all three layers on this clip. Each survives the smell test independently across modalities.</p>
 
   <div class="finding">
-    <h3>★ What transfers: temporal Shot localization across leagues</h3>
-    <p>Training was on 4 English Football League matches. Inference is on Czech-league broadcast (Fortuna Liga), with different camera operators, kit colours, stadium lighting, even slow-motion replays. The model still produces a coherent Shot timeline: spikes at the moments the compilation cuts to actual shooting plays, drops to background between. This is pure cross-domain transfer from the frozen V-JEPA2 features; the head only adapts the readout, the encoder never saw Czech video.</p>
+    <h3>★ What transfers: continuous-play patterns recognised across leagues</h3>
+    <p>Training was on 4 English Football League matches (2019-2020 season). Inference is on a Conference League qualifier in 2022, different stadium (Stockholm), different broadcast crew, different kit colours, different camera operators. The model nonetheless produces a coherent timeline: Pass + Drive baseline of ~0.45 (correct — football is mostly ball-in-play with passing), Out spikes at ball-out events (max 0.86 / mean 0.12), Shot peaks at 0.72 only at specific moments. This is real cross-domain transfer from the frozen V-JEPA2 features.</p>
     <div class="chart-wrap">
       {{ shot_chart_svg | safe }}
-      <div class="chart-caption">P(Shot) along the {{ video_duration }}-second compilation. Spikes co-locate with the cuts to shooting plays.</div>
+      <div class="chart-caption">P(Shot) along the {{ video_duration }}-second match window. Sparse, well-localized spikes (mean 0.03) at the specific moments where a shot or shot-adjacent action occurs.</div>
     </div>
   </div>
 
   <div class="finding warn">
-    <h3>✗ What doesn't: the Goal class is structurally dead</h3>
-    <p>On a video literally titled "All Goals of 2025", the model's Goal-class probability never exceeds P=0.03. Two reasons compound:</p>
-    <ol>
-      <li><strong>Long-tail in training data.</strong> SoccerNet BAS 2025 train split has just 16 Goal annotations across 4 matches (vs 5206 Passes, 5188 Drives). 16 examples is below the floor for a 12-class linear head to learn a distinct visual signature, so Goal collapses into Shot at inference time.</li>
-      {% if commentary_summary and commentary_summary.n_goal_calls > 0 %}
-      <li><strong>Cross-modal confirmation.</strong> Whisper picked up "gol!" <strong>{{ commentary_summary.n_goal_calls }} times</strong> in this clip — but only {{ commentary_summary.n_goal_agreements }} of those moments line up with a high Goal-class probability from the events model. The audio modality keeps saying "Goal" while the video modality stays silent. The disagreement is the diagnostic.</li>
-      {% endif %}
-    </ol>
-    <p style="margin-top:0.8rem;"><strong>Three plausible fixes</strong> for Phase 4+: self-supervised pretraining on the 500 unannotated SoccerNet matches, class-conditional augmentation on the 16 Goal windows (temporal jitter, crop, brightness), or LoRA fine-tune the V-JEPA2 backbone on BAS so the encoder learns the "ball-crosses-line" geometry directly. The last one needs a ~$5 RunPod budget.</p>
+    <h3>✗ Cross + Header underestimated</h3>
+    <p>The model's Cross-class max P is 0.56 and Header max 0.53, but the commentary explicitly mentions crosses and headers 4-5 times in this window (around t=167s, t=357s, t=716s, t=741s). At those moments the model's top-1 prediction is usually <strong>Pass</strong> or <strong>Drive</strong> — the model sees the ball moving and infers passing, missing the specific kinematic signature of a cross or aerial duel.</p>
+    <p>Cross has 486 training examples in BAS, Header 882 — that's borderline. With more training data per class (Phase 3 LoRA fine-tune or larger annotated corpus), these classes should sharpen substantially.</p>
+  </div>
+
+  <div class="finding warn">
+    <h3>✗ Goal class still structurally dead (when goals do happen)</h3>
+    <p>This 15-min window has no goals, so the Goal-class staying silent (max P 0.07) is correct behaviour. But the underlying limitation persists: SoccerNet BAS 2025 train split has just 16 Goal annotations across 4 matches (vs 5206 Passes, 5188 Drives). 16 examples is below the floor for the linear head to learn a distinct visual signature — on a clip that DOES contain goals (e.g. the AC Sparta goals compilation we tested before this), Goal collapses into Shot at inference time.</p>
+    <p><strong>Three plausible fixes</strong> for Phase 5+: self-supervised pretraining on the 500 unannotated SoccerNet matches, class-conditional augmentation on the 16 Goal windows (temporal jitter, crop, brightness), or LoRA fine-tune the V-JEPA2 backbone on BAS so the encoder learns the "ball-crosses-line" geometry directly. The last one needs a ~$5 RunPod budget.</p>
   </div>
 
   <div class="finding warn">

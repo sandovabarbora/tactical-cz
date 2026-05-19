@@ -55,15 +55,15 @@ class RenderConfig:
     vision_parquet: Path | None = None     # Phase 1 tracking parquet → enables tactical layer
     transcript_parquet: Path | None = None # Phase 3 ASR transcript → enables commentary layer
     agent_qa_json: Path | None = None      # Phase 4 pre-computed Claude Q&A → enables agent layer
-    title: str = "Phase 2 baseline: V-JEPA2-L + BAS head on a Sparta goal compilation"
+    title: str = "Phase 2-4 baseline: V-JEPA2-L + BAS head on a Sparta Conference League match"
     lede: str = (
         "Frozen V-JEPA2-L (Meta, MIT-licensed) encoder, small linear head "
         "trained on 4 EFL matches from SoccerNet Ball Action Spotting 2025 "
-        "(~8K windows, 12 event classes), evaluated on a 2-minute Sparta "
-        "all-goals-of-2025 compilation from the official @acspartapraha "
-        "channel. Out-of-distribution evaluation: Czech league + multi-match "
-        "splice + different camera operators. Honest baseline showing what "
-        "transfers, what doesn't, and why."
+        "(~8K windows, 12 event classes), evaluated on the first 15 minutes "
+        "of AC Sparta Praha vs Viking Stavanger — UEFA Conference League "
+        "qualifier, 21 July 2022. Continuous real-broadcast play, Czech "
+        "commentary, no jump cuts. Out-of-distribution test for the model: "
+        "different league, different broadcast crew, different stadium."
     )
     repo_url: str = "https://github.com/sandovabarbora/tactical-cz"
     fake_label_frame: int = 350
