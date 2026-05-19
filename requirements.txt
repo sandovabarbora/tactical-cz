@@ -1,0 +1,12 @@
+# HuggingFace Space runtime deps for tactical-cz Gradio Space.
+# Smaller than pyproject.toml because the Space only runs the Q&A layer
+# (Claude API + pre-computed parquets); the heavy ML deps (torch,
+# transformers, opencv, ultralytics, boxmot) are NOT needed here.
+
+gradio>=6.0,<7.0
+anthropic>=0.40
+python-dotenv>=1.0
+pandas>=2.2
+pyarrow>=17.0
+numpy>=1.26,<2.3
+markdown>=3.5

@@ -200,6 +200,7 @@ class ClipQA:
         transcript_path: Path | None = None,
         model: str = DEFAULT_MODEL,
         fps: float = 25.0,
+        system_prompt: str | None = None,
     ) -> None:
         # Lazy .env load (mirrors downloader.py pattern)
         from dotenv import load_dotenv
@@ -211,6 +212,7 @@ class ClipQA:
         from anthropic import Anthropic
         self.client = Anthropic()
         self.model = model
+        self.system_prompt = system_prompt or SYSTEM_PROMPT
         self.context = build_context(events_path, vision_path, transcript_path, fps=fps)
 
     def ask(self, question: str, max_tokens: int = 600) -> str:
@@ -218,7 +220,7 @@ class ClipQA:
         resp = self.client.messages.create(
             model=self.model,
             max_tokens=max_tokens,
-            system=SYSTEM_PROMPT + "\n\n" + self.context.as_prompt(),
+            system=self.system_prompt + "\n\n" + self.context.as_prompt(),
             messages=[{"role": "user", "content": question}],
         )
         # Concatenate text blocks (Claude returns a list of content blocks)

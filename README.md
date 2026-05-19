@@ -1,8 +1,28 @@
+---
+title: tactical-cz
+emoji: ⚽
+colorFrom: green
+colorTo: yellow
+sdk: gradio
+sdk_version: 6.14.0
+app_file: app.py
+pinned: false
+license: mit
+short_description: Multimodální AI analýza českého fotbalu — Q&A nad pipeline
+---
+
 # tactical-cz
 
 > Multimodální AI pipeline pro česká fotbalová televizní vysílání. Vize, ASR, taktický LLM agent.
 
-**Stav:** Phase 0 (scaffolding hotov, ML kód neexistuje). Viz [PRD.md](./PRD.md) pro celý projektový plán.
+**Stav:** Phase 0-4 hotovo. Statický demo report na [GitHub Pages](https://sandovabarbora.github.io/tactical-cz/), interaktivní Q&A demo přes Gradio (`app.py` na HF Spaces). Viz [PRD.md](./PRD.md) pro celý projektový plán.
+
+## Demos
+
+| | URL | Co to ukazuje |
+|---|---|---|
+| 📊 Static report | https://sandovabarbora.github.io/tactical-cz/ | Annotated mp4 + 4-vrstvý pipeline analysis + diagnostické findings + pre-computed Q&A |
+| 💬 Interactive Q&A | (HF Space link po deploy) | Ptej se na konkrétní moment v Sparta-goals klipu, Czech default |
 
 ---
 
